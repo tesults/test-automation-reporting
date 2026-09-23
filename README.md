@@ -9,8 +9,10 @@ The action does **not** run your tests and does not require a Tesults account. Y
 ### 1. Install the Tesults reporter
 
 ```sh
-npm install --save-dev playwright-tesults-reporter
+npm install --save-dev playwright-tesults-reporter@^1.6.1
 ```
+
+`playwright-tesults-reporter` 1.6.1 or later is required.
 
 ### 2. Add the reporter to Playwright
 
