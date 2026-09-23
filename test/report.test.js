@@ -65,8 +65,8 @@ assert.ok(summary.includes('Test Automation Reporting by Tesults'));
 assert.ok(summary.includes('playwright'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected error message'));
-assert.ok(summary.includes('Previous attempts: 1'));
-assert.ok(summary.includes('Attachments: 1'));
+assert.ok(summary.includes('Previous attempts:** 1'));
+assert.ok(summary.includes('Attachments:** 1'));
 assert.ok(summary.includes('submit payment'));
 
 const reportAnnotations = annotations(data, workspace);
