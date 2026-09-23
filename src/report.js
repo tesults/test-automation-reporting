@@ -218,6 +218,28 @@ function isImageFile(file) {
   return /\.(png|jpe?g|gif|webp|bmp)$/i.test(file || '');
 }
 
+function displayAttachmentName(file) {
+  const basename = path.basename(String(file || 'attachment'));
+  const ext = path.extname(basename);
+  let stem = path.basename(basename, ext);
+
+  // Playwright copies attachments into its output directory with a long
+  // content-derived suffix. Keep the useful human part of the filename.
+  stem = stem.replace(/[-_.]?[a-f0-9]{16,}$/i, '');
+  stem = stem.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+  return `${stem || 'attachment'}${ext.toLowerCase()}`;
+}
+
+function groupedAttachmentNames(files) {
+  const groups = new Map();
+  for (const file of files) {
+    const label = displayAttachmentName(file);
+    groups.set(label, (groups.get(label) || 0) + 1);
+  }
+  return [...groups.entries()];
+}
+
 function renderAttachments(testCase, attachmentUrl) {
   const files = attachmentFiles(testCase);
   if (!files.length) return '';
@@ -228,16 +250,16 @@ function renderAttachments(testCase, attachmentUrl) {
 
   if (screenshots.length) {
     markdown += '**Screenshots**\n\n';
-    for (const file of screenshots.slice(0, 20)) {
-      markdown += `- 🖼️ ${markdownText(path.basename(file))}\n`;
+    for (const [label, count] of groupedAttachmentNames(screenshots.slice(0, 20))) {
+      markdown += `- 🖼️ ${markdownText(label)}${count > 1 ? ` _(${count} files)` : ''}\n`;
     }
     markdown += '\n';
   }
 
   if (others.length) {
     markdown += '**Attachments**\n\n';
-    for (const file of others.slice(0, 30)) {
-      markdown += `- 📎 ${markdownText(path.basename(file))}\n`;
+    for (const [label, count] of groupedAttachmentNames(others.slice(0, 30))) {
+      markdown += `- 📎 ${markdownText(label)}${count > 1 ? ` _(${count} files)` : ''}\n`;
     }
     markdown += '\n';
   }
@@ -251,20 +273,23 @@ function renderAttachments(testCase, attachmentUrl) {
   return markdown;
 }
 
+function renderOutputSection(label, text) {
+  if (!text) return '';
+  const clean = codeBlock(text);
+  const lineCount = clean ? clean.split('\n').length : 0;
+  const isShort = clean.length <= 1600 && lineCount <= 12;
+
+  if (isShort) {
+    return `**${label}**\n\n\`\`\`text\n${clean}\n\`\`\`\n\n`;
+  }
+
+  return `<details><summary>${label}</summary>\n\n\`\`\`text\n${clean.slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
+}
+
 function renderOutputs(testCase) {
   const stdout = outputText(testCase && testCase['_Standard output']);
   const stderr = outputText(testCase && testCase['_Standard error']);
-  let markdown = '';
-
-  if (stdout) {
-    markdown += '<details><summary>Standard output</summary>\n\n';
-    markdown += `\`\`\`text\n${codeBlock(stdout).slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
-  }
-  if (stderr) {
-    markdown += '<details><summary>Standard error</summary>\n\n';
-    markdown += `\`\`\`text\n${codeBlock(stderr).slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
-  }
-  return markdown;
+  return renderOutputSection('Standard output', stdout) + renderOutputSection('Standard error', stderr);
 }
 
 function renderDescriptionAndParams(testCase) {
@@ -370,13 +395,9 @@ function renderTestTable(cases, context) {
 function renderSummary(data, context = {}) {
   const cases = testCasesFrom(data);
   const counts = resultCounts(data);
-  const framework = data.metadata && data.metadata.test_framework
-    ? String(data.metadata.test_framework)
-    : 'Test';
-  const frameworkName = framework.charAt(0).toUpperCase() + framework.slice(1);
   const overallIcon = counts.failed > 0 ? '❌' : counts.flaky > 0 ? '⚠️' : '✅';
 
-  let markdown = `# ${overallIcon} ${markdownText(frameworkName)} Test Results\n\n`;
+  let markdown = `# ${overallIcon} Test Results\n\n`;
   const summaryParts = [
     `**${counts.total}** total`,
     `✅ **${counts.passed}** passed`,
