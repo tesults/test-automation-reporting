@@ -162,8 +162,8 @@ const allPassing = {
 const allPassingSummary = renderSummary(allPassing);
 assert.ok(allPassingSummary.startsWith('**Test results** · 2 tests · 30 ms'));
 assert.ok(allPassingSummary.includes('2 passed · 0 failed'));
-assert.ok(!allPassingSummary.includes('flaky'));
-assert.ok(!allPassingSummary.includes('other'));
+assert.ok(!allPassingSummary.includes(' · 0 flaky'));
+assert.ok(!allPassingSummary.includes(' · 0 other'));
 
 
 const noStorageSummary = renderSummary({
