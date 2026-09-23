@@ -161,18 +161,20 @@ function totalDuration(cases) {
 
 function renderCompactHeader(counts, duration) {
   const testLabel = counts.total === 1 ? 'test' : 'tests';
-  const status = counts.failed > 0 ? '❌' : counts.flaky > 0 ? '⚠️' : counts.other > 0 ? '⚪' : '✅';
-  let markdown = `**${status} Test results** · ${counts.total} ${testLabel}`;
+  let markdown = `**Test results** · ${counts.total} ${testLabel}`;
   if (duration) markdown += ` · ${duration}`;
   markdown += '\n\n';
 
-  const parts = [
-    `${counts.passed} passed`,
-    `${counts.failed} failed`
+  const columns = [
+    { label: 'Passed', value: `✅ ${counts.passed}` },
+    { label: 'Failed', value: `❌ ${counts.failed}` }
   ];
-  if (counts.flaky > 0) parts.push(`${counts.flaky} flaky`);
-  if (counts.other > 0) parts.push(`${counts.other} other`);
-  markdown += parts.join(' · ') + '\n\n';
+  if (counts.flaky > 0) columns.push({ label: 'Flaky', value: `⚠️ ${counts.flaky}` });
+  if (counts.other > 0) columns.push({ label: 'Other', value: `⚪ ${counts.other}` });
+
+  markdown += `| ${columns.map((column) => column.label).join(' | ')} |\n`;
+  markdown += `| ${columns.map(() => '---:').join(' | ')} |\n`;
+  markdown += `| ${columns.map((column) => column.value).join(' | ')} |\n\n`;
   return markdown;
 }
 
@@ -465,7 +467,7 @@ function renderSummary(data, context = {}) {
   const flaky = cases.filter(isFlaky);
 
   if (failed.length) {
-    markdown += `### ❌ Failures · ${failed.length}\n\n`;
+    markdown += `### Failures\n\n`;
     const visibleFailures = failed.slice(0, 50);
     visibleFailures.forEach((testCase, index) => {
       markdown += renderFailure(testCase, context);
@@ -477,7 +479,7 @@ function renderSummary(data, context = {}) {
   }
 
   if (flaky.length) {
-    markdown += `### ⚠️ Flaky tests · ${flaky.length}\n\n`;
+    markdown += `### Flaky tests\n\n`;
     const visibleFlaky = flaky.slice(0, 25);
     visibleFlaky.forEach((testCase, index) => {
       markdown += renderFlaky(testCase, context);
