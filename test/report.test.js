@@ -82,18 +82,16 @@ const summary = renderSummary(data, {
   attachmentUrl: 'https://github.com/tesults/example/actions/runs/1/artifacts/2'
 });
 
-assert.ok(summary.includes('# Test Results'));
-assert.ok(summary.includes('### ❌ 1 test failed'));
+assert.ok(summary.startsWith('**Test results** · 2 tests · 200 ms'));
+assert.ok(summary.includes('✅ 0 passed · ❌ 1 failed · ⚠️ 1 flaky'));
 assert.ok(!summary.includes('Playwright Test Results'));
-assert.ok(summary.includes('| Tests | Passed | Failed | Flaky | Duration |'));
-assert.ok(summary.includes('| **2** | ✅ **0** | ❌ **1** | ⚠️ **1** | **200 ms** |'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected: 2'));
 assert.ok(summary.includes('Received: 1'));
 assert.ok(summary.includes('Shows a useful error'));
 assert.ok(summary.includes('browser'));
 assert.ok(summary.includes('browserVersion'));
-assert.ok(summary.includes('**Attempts:** ❌ Attempt 1 → ✅ Attempt 2'));
+assert.ok(summary.includes('**Attempts** · ❌ 1 → ✅ 2'));
 assert.ok(summary.includes('submit payment'));
 assert.ok(summary.includes('expect error message'));
 assert.ok(!summary.includes('Before Hooks'));
@@ -164,12 +162,10 @@ const allPassing = {
   }
 };
 const allPassingSummary = renderSummary(allPassing);
-assert.ok(allPassingSummary.includes('# Test Results'));
-assert.ok(allPassingSummary.includes('### ✅ All tests passed'));
-assert.ok(allPassingSummary.includes('| Tests | Passed | Failed | Duration |'));
-assert.ok(allPassingSummary.includes('| **2** | ✅ **2** | ❌ **0** | **30 ms** |'));
-assert.ok(!allPassingSummary.includes('| Flaky |'));
-assert.ok(!allPassingSummary.includes('| Other |'));
+assert.ok(allPassingSummary.startsWith('**Test results** · 2 tests · 30 ms'));
+assert.ok(allPassingSummary.includes('✅ 2 passed · ❌ 0 failed'));
+assert.ok(!allPassingSummary.includes('flaky'));
+assert.ok(!allPassingSummary.includes('other'));
 
 
 const noStorageSummary = renderSummary({
