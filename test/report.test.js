@@ -84,8 +84,8 @@ const summary = renderSummary(data, {
 
 assert.ok(summary.includes('# ❌ Test Results'));
 assert.ok(!summary.includes('Playwright Test Results'));
-assert.ok(summary.includes('**1** failed'));
-assert.ok(summary.includes('**1** flaky'));
+assert.ok(summary.includes('| Total | Passed | Failed | Flaky | Other |'));
+assert.ok(summary.includes('| **2** | ✅ **0** | ❌ **1** | ⚠️ **1** | ⚪ **0** |'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected: 2'));
 assert.ok(summary.includes('Received: 1'));
@@ -141,3 +141,30 @@ const longOutputData = {
 const longOutputSummary = renderSummary(longOutputData);
 assert.ok(longOutputSummary.includes('<details><summary>Standard output</summary>'));
 assert.ok(longOutputSummary.includes('line 20'));
+
+
+const multiSuite = {
+  results: {
+    cases: [
+      { suite: 'checkout', name: 'a', result: 'pass', duration: 10 },
+      { suite: 'auth', name: 'b', result: 'fail', duration: 20, reason: 'boom' }
+    ]
+  }
+};
+const multiSuiteSummary = renderSummary(multiSuite);
+assert.ok(multiSuiteSummary.includes('<details><summary>Suite breakdown (2)</summary>'));
+assert.ok(multiSuiteSummary.includes('| checkout | **1** | ✅ 1 | ❌ 0 | ⚠️ 0 | ⚪ 0 |'));
+assert.ok(multiSuiteSummary.includes('| auth | **1** | ✅ 0 | ❌ 1 | ⚠️ 0 | ⚪ 0 |'));
+
+const allPassing = {
+  results: {
+    cases: [
+      { suite: 'smoke', name: 'a', result: 'pass', duration: 10 },
+      { suite: 'smoke', name: 'b', result: 'pass', duration: 20 }
+    ]
+  }
+};
+const allPassingSummary = renderSummary(allPassing);
+assert.ok(allPassingSummary.includes('# ✅ Test Results'));
+assert.ok(allPassingSummary.includes('> ✅ **All tests passed.**'));
+assert.ok(allPassingSummary.includes('| **2** | ✅ **2** | ❌ **0** | ⚠️ **0** | ⚪ **0** |'));
