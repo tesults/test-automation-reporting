@@ -119,7 +119,7 @@ assert.ok(!summary.includes('abcdef0123456789'));
 assert.ok(summary.includes('<details><summary>Captured files (2)</summary>'));
 assert.ok(summary.includes('Download captured files'));
 assert.ok(summary.includes('https://github.com/tesults/example/blob/abc123/tests/checkout.spec.js#L12'));
-assert.ok(summary.includes('[Tesults]'));
+assert.ok(summary.includes('[**Tesults**]'));
 assert.ok(summary.includes('enhanced test automation reporting and failure intelligence'));
 assert.ok(!summary.includes('\u001b['));
 
