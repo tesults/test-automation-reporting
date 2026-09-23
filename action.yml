@@ -1,5 +1,5 @@
-name: Test Automation Reporting by Tesults
-description: Publish test automation results from Tesults reporters directly in GitHub.
+name: Test Automation Reporting for GitHub Actions
+description: GitHub-native test reports with failures, logs, steps, retries, screenshots, and attachments.
 author: Tesults
 
 runs:
