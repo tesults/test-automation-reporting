@@ -161,7 +161,7 @@ function totalDuration(cases) {
 
 function renderCompactHeader(counts, duration) {
   const testLabel = counts.total === 1 ? 'test' : 'tests';
-  let markdown = `**Test results** · ${counts.total} ${testLabel}`;
+  let markdown = `## Test results · ${counts.total} ${testLabel}`;
   if (duration) markdown += ` · ${duration}`;
   markdown += '\n\n';
 
