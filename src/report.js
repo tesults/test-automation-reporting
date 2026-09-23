@@ -1,6 +1,6 @@
 const path = require('path');
 
-const TESULTS_URL = 'https://www.tesults.com/?i=gh';
+const TESULTS_URL = 'https://www.tesults.com/?i=ga';
 
 const STANDARD_FIELDS = new Set([
   'name', 'result', 'suite', 'desc', 'reason', 'params', 'files', 'steps',
