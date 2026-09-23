@@ -148,8 +148,8 @@ const multiSuite = {
 };
 const multiSuiteSummary = renderSummary(multiSuite);
 assert.ok(multiSuiteSummary.includes('<details><summary>Suite breakdown (2)</summary>'));
-assert.ok(multiSuiteSummary.includes('| checkout | **1** | ✅ 1 | ❌ 0 | ⚠️ 0 | ⚪ 0 |'));
-assert.ok(multiSuiteSummary.includes('| auth | **1** | ✅ 0 | ❌ 1 | ⚠️ 0 | ⚪ 0 |'));
+assert.ok(multiSuiteSummary.includes('| checkout | **1** | 1 | 0 | 0 | 0 |'));
+assert.ok(multiSuiteSummary.includes('| auth | **1** | 0 | 1 | 0 | 0 |'));
 
 const allPassing = {
   results: {
