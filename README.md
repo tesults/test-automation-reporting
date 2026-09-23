@@ -11,8 +11,8 @@ The report is designed for the person debugging the run: failures first, clean e
 - Clickable source locations
 - Retry history
 - Nested test steps
-- Standard output and standard error when available
-- Screenshots, logs, traces, and other test files listed in the report and uploaded as a GitHub Actions artifact
+- Standard output and standard error when available — shown inline when short and collapsed when long
+- Screenshots, logs, traces, and other test files grouped with readable names and uploaded as a GitHub Actions artifact
 - Failure annotations on the relevant source file
 - A compact all-tests view
 
