@@ -1,0 +1,13 @@
+name: Test Automation Reporting by Tesults
+description: Publish test automation results from Tesults reporters directly in GitHub.
+author: Tesults
+
+runs:
+  using: node24
+  main: src/main.js
+  post: src/post.js
+  post-if: always()
+
+branding:
+  icon: check-circle
+  color: blue

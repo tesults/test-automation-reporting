@@ -1,19 +1,75 @@
 # Test Automation Reporting for GitHub Actions
 
-Free, zero-config test automation reporting by [Tesults](https://www.tesults.com).
+Free GitHub-native test automation reporting powered by the Tesults JSON Standard.
 
-Run your tests and publish rich test results directly in GitHub without configuring a separate test results reporter or generating an intermediate report file first.
+The action does **not** run your tests and does not require a Tesults account. Your framework's Tesults reporter collects the test results, and this action publishes those results in GitHub.
 
-## Status
+## Playwright
 
-This GitHub Action is under development.
+### 1. Install the Tesults reporter
 
-The first supported framework will be Playwright. Additional test frameworks are planned.
+```sh
+npm install --save-dev playwright-tesults-reporter
+```
 
-## Why this action
+### 2. Add the reporter to Playwright
 
-Most GitHub test reporting actions require your test framework to generate JUnit, JSON, or another report format first. This action is designed to integrate directly with supported test frameworks and produce GitHub-native test reporting with minimal configuration.
+Keep any reporters you already use and add `playwright-tesults-reporter`:
+
+```js
+// playwright.config.js
+module.exports = {
+  reporter: [
+    ['line'],
+    ['playwright-tesults-reporter']
+  ]
+};
+```
+
+No Tesults target token is required for GitHub reporting.
+
+### 3. Add the action before your existing test step
+
+```yaml
+- name: Set up test automation reporting
+  uses: tesults/test-automation-reporting@v1
+
+- name: Run Playwright tests
+  run: npm run test:e2e
+```
+
+**The order matters:** put the Tesults action before the step that runs the tests. You do not need to change your existing test command.
+
+The action supplies `TESULTS_OUTPUT_FILE` to the reporter. After the tests finish, the action reads the standard Tesults JSON output and publishes the result to the GitHub job summary with failure annotations.
+
+## How it works
+
+```text
+Playwright
+    |
+    v
+playwright-tesults-reporter
+    |
+    v
+Tesults JSON Standard
+    |
+    v
+tesults/test-automation-reporting
+    |
+    v
+GitHub summary and annotations
+```
+
+The action itself is framework-neutral. Jest, Vitest, and other Tesults integrations can use the same action once their reporters support local Tesults JSON output.
+
+## Existing Tesults customers
+
+The same reporter can write the local results file for this action and upload to Tesults in the same test run. There is no need to configure a second reporter instance.
+
+## Current status
+
+The initial release supports Playwright. More Tesults framework integrations are planned.
 
 ## Tesults
 
-[Tesults](https://www.tesults.com) provides test automation reporting, analysis, history, trends, notifications, release tracking, and failure analysis for engineering teams.
+[Tesults](https://www.tesults.com) provides persistent test history, trends, flaky test detection, failure analysis, release tracking, notifications, and team-wide test reporting.
