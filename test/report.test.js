@@ -84,8 +84,8 @@ const summary = renderSummary(data, {
 
 assert.ok(summary.includes('# ❌ Test Results'));
 assert.ok(!summary.includes('Playwright Test Results'));
-assert.ok(summary.includes('| Total | Passed | Failed | Flaky | Other |'));
-assert.ok(summary.includes('| **2** | ✅ **0** | ❌ **1** | ⚠️ **1** | ⚪ **0** |'));
+assert.ok(summary.includes('| Total | Passed | Failed | Flaky |'));
+assert.ok(summary.includes('| **2** | ✅ **0** | ❌ **1** | ⚠️ **1** |'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected: 2'));
 assert.ok(summary.includes('Received: 1'));
@@ -167,4 +167,7 @@ const allPassing = {
 const allPassingSummary = renderSummary(allPassing);
 assert.ok(allPassingSummary.includes('# ✅ Test Results'));
 assert.ok(allPassingSummary.includes('> ✅ **All tests passed.**'));
-assert.ok(allPassingSummary.includes('| **2** | ✅ **2** | ❌ **0** | ⚠️ **0** | ⚪ **0** |'));
+assert.ok(allPassingSummary.includes('| Total | Passed | Failed |'));
+assert.ok(allPassingSummary.includes('| **2** | ✅ **2** | ❌ **0** |'));
+assert.ok(!allPassingSummary.includes('| Flaky |'));
+assert.ok(!allPassingSummary.includes('| Other |'));
