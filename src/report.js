@@ -159,34 +159,22 @@ function totalDuration(cases) {
   }, 0);
 }
 
-function renderStatusHeadline(counts) {
-  if (counts.failed > 0) {
-    return `### ❌ ${counts.failed} ${counts.failed === 1 ? 'test failed' : 'tests failed'}\n\n`;
-  }
-  if (counts.flaky > 0) {
-    return `### ⚠️ Passed with ${counts.flaky} flaky ${counts.flaky === 1 ? 'test' : 'tests'}\n\n`;
-  }
-  if (counts.other > 0) {
-    return `### ⚪ Completed with ${counts.other} other ${counts.other === 1 ? 'result' : 'results'}\n\n`;
-  }
-  return '### ✅ All tests passed\n\n';
-}
+function renderCompactHeader(counts, duration) {
+  const testLabel = counts.total === 1 ? 'test' : 'tests';
+  let markdown = `**Test results** · ${counts.total} ${testLabel}`;
+  if (duration) markdown += ` · ${duration}`;
+  markdown += '\n\n';
 
-function renderSummaryTable(counts, duration) {
-  const columns = [
-    { label: 'Tests', value: `**${counts.total}**` },
-    { label: 'Passed', value: `✅ **${counts.passed}**` },
-    { label: 'Failed', value: `❌ **${counts.failed}**` }
+  const parts = [
+    `✅ ${counts.passed} passed`,
+    `❌ ${counts.failed} failed`
   ];
-  if (counts.flaky > 0) columns.push({ label: 'Flaky', value: `⚠️ **${counts.flaky}**` });
-  if (counts.other > 0) columns.push({ label: 'Other', value: `⚪ **${counts.other}**` });
-  if (duration) columns.push({ label: 'Duration', value: `**${duration}**` });
-
-  let markdown = `| ${columns.map((column) => column.label).join(' | ')} |\n`;
-  markdown += `| ${columns.map(() => '---:').join(' | ')} |\n`;
-  markdown += `| ${columns.map((column) => column.value).join(' | ')} |\n\n`;
+  if (counts.flaky > 0) parts.push(`⚠️ ${counts.flaky} flaky`);
+  if (counts.other > 0) parts.push(`⚪ ${counts.other} other`);
+  markdown += parts.join(' · ') + '\n\n';
   return markdown;
 }
+
 
 function renderSuiteBreakdown(cases) {
   const suites = suiteResults(cases);
@@ -400,13 +388,13 @@ function renderRetrySummary(testCase) {
   if (!retries.length) return '';
 
   const attempts = [...retries, testCase];
-  const labels = attempts.map((attempt, index) => `${statusIcon(attempt.result)} Attempt ${index + 1}`).join(' → ');
-  return `**Attempts:** ${labels}\n\n`;
+  const labels = attempts.map((attempt, index) => `${statusIcon(attempt.result)} ${index + 1}`).join(' → ');
+  return `**Attempts** · ${labels}\n\n`;
 }
 
 function renderFailure(testCase, context) {
   const info = errorInfo(testCase.reason);
-  let markdown = `### ❌ ${markdownText(testCase.name || 'Unnamed test')}\n\n`;
+  let markdown = `❌ **${markdownText(testCase.name || 'Unnamed test')}**\n\n`;
   const meta = [];
   if (testCase.suite) meta.push(markdownText(testCase.suite));
   const source = sourceReference(testCase, context);
@@ -444,7 +432,7 @@ function renderFailure(testCase, context) {
 }
 
 function renderFlaky(testCase, context) {
-  let markdown = `### ⚠️ ${markdownText(testCase.name || 'Unnamed test')}\n\n`;
+  let markdown = `⚠️ **${markdownText(testCase.name || 'Unnamed test')}**\n\n`;
   const source = sourceReference(testCase, context);
   const duration = formatDuration(testCase.duration);
   const meta = [testCase.suite ? markdownText(testCase.suite) : '', source, duration].filter(Boolean);
@@ -473,16 +461,14 @@ function renderSummary(data, context = {}) {
   const counts = resultCounts(data);
   const duration = formatDuration(totalDuration(cases));
 
-  let markdown = '# Test Results\n\n';
-  markdown += renderStatusHeadline(counts);
-  markdown += renderSummaryTable(counts, duration);
+  let markdown = renderCompactHeader(counts, duration);
   markdown += renderSuiteBreakdown(cases);
 
   const failed = cases.filter((testCase) => testCase.result === 'fail');
   const flaky = cases.filter(isFlaky);
 
   if (failed.length) {
-    markdown += `## Failures (${failed.length})\n\n`;
+    markdown += `### Failures (${failed.length})\n\n`;
     const visibleFailures = failed.slice(0, 50);
     visibleFailures.forEach((testCase, index) => {
       markdown += renderFailure(testCase, context);
@@ -494,7 +480,7 @@ function renderSummary(data, context = {}) {
   }
 
   if (flaky.length) {
-    markdown += `## Flaky tests (${flaky.length})\n\n`;
+    markdown += `### Flaky tests (${flaky.length})\n\n`;
     const visibleFlaky = flaky.slice(0, 25);
     visibleFlaky.forEach((testCase, index) => {
       markdown += renderFlaky(testCase, context);
