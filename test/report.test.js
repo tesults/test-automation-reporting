@@ -133,7 +133,7 @@ const longOutputData = {
       name: 'long output',
       result: 'fail',
       reason: 'failed',
-      '_Standard output': JSON.stringify(Array.from({ length: 20 }, (_, index) => `line ${index + 1}\\n`))
+      '_Standard output': JSON.stringify(['x'.repeat(1700) + ' line 20'])
     }]
   },
   metadata: { test_framework: 'playwright' }
