@@ -63,10 +63,10 @@ If you want downloadable copies after the runner is gone, explicitly opt in to G
 ```yaml
 - uses: tesults/test-automation-reporting@v1
   with:
-    upload-attachments: true
+    store-attachments: true
 ```
 
-GitHub can bill artifact storage when an account exceeds its included allowance, so attachment upload is deliberately opt-in. When enabled, this action keeps its artifact for 1 day by default to minimize storage use.
+GitHub can bill artifact storage when an account exceeds its included allowance, so attachment storage is deliberately opt-in. When enabled, this action keeps its artifact for 1 day by default to minimize storage use.
 
 ## How it works
 
@@ -98,4 +98,4 @@ This action is free and does not require a Tesults account.
 
 ## License
 
-MIT. Attachment upload includes the MIT-licensed GitHub `actions/upload-artifact` v7.0.1 runtime; see `vendor/upload-artifact-LICENSE`.
+MIT. attachment storage includes the MIT-licensed GitHub `actions/upload-artifact` v7.0.1 runtime; see `vendor/upload-artifact-LICENSE`.
