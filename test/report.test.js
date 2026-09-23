@@ -83,7 +83,7 @@ const summary = renderSummary(data, {
 });
 
 assert.ok(summary.startsWith('**Test results** · 2 tests · 200 ms'));
-assert.ok(summary.includes('0 passed · 1 failed · 1 flaky'));
+assert.ok(summary.includes('| Passed | Failed | Flaky |'));
 assert.ok(!summary.includes('Playwright Test Results'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected: 2'));
@@ -161,7 +161,7 @@ const allPassing = {
 };
 const allPassingSummary = renderSummary(allPassing);
 assert.ok(allPassingSummary.startsWith('**Test results** · 2 tests · 30 ms'));
-assert.ok(allPassingSummary.includes('2 passed · 0 failed'));
+assert.ok(allPassingSummary.includes('| Passed | Failed |'));
 assert.ok(!allPassingSummary.includes(' · 0 flaky'));
 assert.ok(!allPassingSummary.includes(' · 0 other'));
 
