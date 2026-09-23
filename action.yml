@@ -3,8 +3,8 @@ description: GitHub-native test reports with failures, logs, retries, steps, scr
 author: Tesults
 
 inputs:
-  upload-attachments:
-    description: Upload screenshots, logs, and other captured test files as a GitHub Actions artifact.
+  store-attachments:
+    description: Store screenshots, logs, and other captured test files as a GitHub Actions artifact for 1 day.
     required: false
     default: "false"
 
