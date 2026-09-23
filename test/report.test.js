@@ -125,9 +125,6 @@ assert.strictEqual(reportAnnotations[0].location.col, 4);
 assert.ok(reportAnnotations[0].message.includes('Expected: 2'));
 assert.ok(!reportAnnotations[0].message.includes('\u001b['));
 
-console.log('All tests passed.');
-
-
 const longOutputData = {
   results: {
     cases: [{
@@ -180,7 +177,8 @@ const noStorageSummary = renderSummary({
     cases: [{
       suite: 'files',
       name: 'captures screenshot',
-      result: 'pass',
+      result: 'fail',
+      reason: 'example failure',
       duration: 5,
       files: ['/tmp/example.png']
     }]
@@ -189,3 +187,5 @@ const noStorageSummary = renderSummary({
 assert.ok(noStorageSummary.includes('<details><summary>Captured files (1)</summary>'));
 assert.ok(!noStorageSummary.includes('storage was requested'));
 assert.ok(!noStorageSummary.includes('artifact upload was unavailable'));
+
+console.log('All tests passed.');
