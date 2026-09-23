@@ -174,12 +174,24 @@ function uploadAttachments(data) {
   return artifactUrl;
 }
 
+function actionRef() {
+  if (process.env.GITHUB_ACTION_REF) return process.env.GITHUB_ACTION_REF;
+
+  const parts = path.resolve(__dirname).split(path.sep);
+  const actionsIndex = parts.lastIndexOf('_actions');
+  if (actionsIndex >= 0 && parts.length > actionsIndex + 3) {
+    return parts[actionsIndex + 3];
+  }
+
+  return 'v1';
+}
+
 function reportContext(attachmentUrl) {
   return {
     attachmentUrl,
     storeAttachments: String(process.env['INPUT_STORE-ATTACHMENTS'] || 'false').toLowerCase() === 'true',
     actionRepository: process.env.GITHUB_ACTION_REPOSITORY || 'tesults/test-automation-reporting',
-    actionRef: process.env.GITHUB_ACTION_REF || 'v1',
+    actionRef: actionRef(),
     repository: process.env.GITHUB_REPOSITORY,
     serverUrl: process.env.GITHUB_SERVER_URL || 'https://github.com',
     sha: process.env.GITHUB_SHA,
