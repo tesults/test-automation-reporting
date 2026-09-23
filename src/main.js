@@ -22,5 +22,5 @@ if (fs.existsSync(outputFile)) {
 appendCommandFile(process.env.GITHUB_ENV, 'TESULTS_OUTPUT_FILE', outputFile);
 appendCommandFile(process.env.GITHUB_STATE, 'tesults_output_file', outputFile);
 
-console.log('Tesults test automation reporting is ready.');
-console.log('Run your tests normally. The configured Tesults reporter will write results for this action.');
+console.log('Test automation reporting is ready.');
+console.log('Run your tests normally. The configured framework reporter will write results for this action.');
