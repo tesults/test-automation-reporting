@@ -1,22 +1,20 @@
 # Test Automation Reporting for GitHub Actions
 
-Free GitHub-native test automation reporting powered by the Tesults JSON Standard.
+Turn your automated test results into a useful GitHub-native report: clear pass/fail summaries, readable failures, source annotations, retries, test steps, logs, screenshots, and attachments.
 
-The action does **not** run your tests and does not require a Tesults account. Your framework's Tesults reporter collects the test results, and this action publishes those results in GitHub.
+It is free to use and does **not** require a Tesults account.
 
 ## Playwright
 
-### 1. Install the Tesults reporter
+### 1. Install the reporter
 
 ```sh
 npm install --save-dev playwright-tesults-reporter@^1.6.1
 ```
 
-`playwright-tesults-reporter` 1.6.1 or later is required.
+### 2. Add it to your Playwright reporters
 
-### 2. Add the reporter to Playwright
-
-Keep any reporters you already use and add `playwright-tesults-reporter`:
+Keep the reporters you already use and add `playwright-tesults-reporter`:
 
 ```js
 // playwright.config.js
@@ -30,7 +28,7 @@ module.exports = {
 
 No Tesults target token is required for GitHub reporting.
 
-### 3. Add the action before your existing test step
+### 3. Add the action before your test step
 
 ```yaml
 - name: Set up test automation reporting
@@ -40,38 +38,43 @@ No Tesults target token is required for GitHub reporting.
   run: npm run test:e2e
 ```
 
-**The order matters:** put the Tesults action before the step that runs the tests. You do not need to change your existing test command.
+That's it. Keep your existing test command.
 
-The action supplies `TESULTS_OUTPUT_FILE` to the reporter. After the tests finish, the action reads the standard Tesults JSON output and publishes the result to the GitHub job summary with failure annotations.
+The order matters: the action must run before the tests so it can provide the output path used by the reporter. When the job finishes, the action turns the reporter's Tesults JSON output into the GitHub job summary and source annotations.
+
+## What the report includes
+
+When the data is available from the test framework, the GitHub report can show:
+
+- pass, fail, and other result counts
+- concise failure messages with full error details collapsed underneath
+- source file and line annotations
+- retry history
+- nested test steps
+- stdout and stderr
+- test descriptions and parameters
+- screenshots, traces, logs, and other attachments captured by the reporter
+
+Runner-local files disappear when the job ends. If you need to download screenshots, traces, logs, or other files after the run, persist them with GitHub workflow artifacts. The report identifies the captured files without creating links that will go dead when the runner is removed.
 
 ## How it works
 
 ```text
 Playwright
-    |
-    v
+    ↓
 playwright-tesults-reporter
-    |
-    v
+    ↓
 Tesults JSON Standard
-    |
-    v
+    ↓
 tesults/test-automation-reporting
-    |
-    v
-GitHub summary and annotations
+    ↓
+GitHub summary + source annotations
 ```
 
-The action itself is framework-neutral. Jest, Vitest, and other Tesults integrations can use the same action once their reporters support local Tesults JSON output.
+The action is framework-neutral. Playwright is supported today; other Tesults framework integrations can use the same action as their reporters add local Tesults JSON output.
 
-## Existing Tesults customers
+## Using Tesults as well
 
-The same reporter can write the local results file for this action and upload to Tesults in the same test run. There is no need to configure a second reporter instance.
+The same reporter can create this free GitHub report and upload the same test run to Tesults. You do not need a second reporter configuration.
 
-## Current status
-
-The initial release supports Playwright. More Tesults framework integrations are planned.
-
-## Tesults
-
-[Tesults](https://www.tesults.com) provides persistent test history, trends, flaky test detection, failure analysis, release tracking, notifications, and team-wide test reporting.
+[Tesults](https://www.tesults.com/?utm_source=github&utm_medium=action&utm_campaign=test-automation-reporting) adds history across runs, automated regression detection, flaky-test analysis, AI failure intelligence, release tracking, notifications, and consolidated test results across your systems.
