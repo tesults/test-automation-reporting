@@ -1,5 +1,5 @@
 name: Test Automation Reporting for GitHub Actions
-description: Beautiful GitHub-native test reports with failures, logs, retries, steps, screenshots, and attachments.
+description: GitHub-native test reports with failures, logs, retries, steps, screenshots, and attachments.
 author: Tesults
 
 inputs:
