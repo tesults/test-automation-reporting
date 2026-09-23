@@ -110,11 +110,24 @@ function uploadAttachments(data) {
     return undefined;
   }
 
-  const uploader = path.join(__dirname, '..', 'vendor', 'upload-artifact.mjs');
-  if (!fs.existsSync(uploader)) {
+  const vendorDir = path.join(__dirname, '..', 'vendor');
+  const uploaderParts = fs.existsSync(vendorDir)
+    ? fs.readdirSync(vendorDir).filter((name) => /^upload-artifact\\.part\\d+$/.test(name)).sort()
+    : [];
+  if (!uploaderParts.length) {
     emitWarning('Captured test files could not be uploaded because the bundled GitHub artifact uploader is missing.');
     fs.rmSync(stagingRoot, { recursive: true, force: true });
     return undefined;
+  }
+
+  const uploader = path.join(process.env.RUNNER_TEMP || os.tmpdir(), `tesults-upload-artifact-${crypto.randomUUID()}.mjs`);
+  const uploaderHandle = fs.openSync(uploader, 'w');
+  try {
+    for (const part of uploaderParts) {
+      fs.writeFileSync(uploaderHandle, fs.readFileSync(path.join(vendorDir, part)));
+    }
+  } finally {
+    fs.closeSync(uploaderHandle);
   }
 
   const outputFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), `tesults-artifact-output-${crypto.randomUUID()}.txt`);
@@ -157,6 +170,7 @@ function uploadAttachments(data) {
 
   fs.rmSync(stagingRoot, { recursive: true, force: true });
   fs.rmSync(outputFile, { force: true });
+  fs.rmSync(uploader, { force: true });
   return artifactUrl;
 }
 
