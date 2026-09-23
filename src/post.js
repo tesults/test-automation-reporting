@@ -177,6 +177,7 @@ function uploadAttachments(data) {
 function reportContext(attachmentUrl) {
   return {
     attachmentUrl,
+    storeAttachments: String(process.env['INPUT_STORE-ATTACHMENTS'] || 'false').toLowerCase() === 'true',
     repository: process.env.GITHUB_REPOSITORY,
     serverUrl: process.env.GITHUB_SERVER_URL || 'https://github.com',
     sha: process.env.GITHUB_SHA,
