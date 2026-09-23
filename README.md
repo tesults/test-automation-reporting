@@ -98,4 +98,4 @@ This action is free and does not require a Tesults account.
 
 ## License
 
-MIT. attachment storage includes the MIT-licensed GitHub `actions/upload-artifact` v7.0.1 runtime; see `vendor/upload-artifact-LICENSE`.
+MIT. Attachment storage includes the MIT-licensed GitHub `actions/upload-artifact` v7.0.1 runtime; see `vendor/upload-artifact-LICENSE`.
