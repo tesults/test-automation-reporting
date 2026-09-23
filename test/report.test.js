@@ -79,11 +79,20 @@ const summary = renderSummary(data, {
   serverUrl: 'https://github.com',
   repository: 'tesults/example',
   sha: 'abc123',
-  attachmentUrl: 'https://github.com/tesults/example/actions/runs/1/artifacts/2'
+  attachmentUrl: 'https://github.com/tesults/example/actions/runs/1/artifacts/2',
+  actionRepository: 'tesults/test-automation-reporting',
+  actionRef: 'report-v1.0.1'
 });
 
 assert.ok(summary.startsWith('## Test results · 2 tests · 200 ms'));
 assert.ok(summary.includes('| Passed | Failed | Flaky |'));
+assert.ok(summary.includes('check-circle-fill-16.svg'));
+assert.ok(summary.includes('x-circle-fill-16.svg'));
+assert.ok(summary.includes('alert-fill-16.svg'));
+assert.ok(summary.includes('raw.githubusercontent.com/tesults/test-automation-reporting/report-v1.0.1/assets/octicons/'));
+assert.ok(!summary.includes('✅'));
+assert.ok(!summary.includes('❌'));
+assert.ok(!summary.includes('⚠️'));
 assert.ok(!summary.includes('Playwright Test Results'));
 assert.ok(summary.includes('shows payment error'));
 assert.ok(summary.includes('Expected: 2'));
@@ -162,6 +171,8 @@ const allPassing = {
 const allPassingSummary = renderSummary(allPassing);
 assert.ok(allPassingSummary.startsWith('## Test results · 2 tests · 30 ms'));
 assert.ok(allPassingSummary.includes('| Passed | Failed |'));
+assert.ok(allPassingSummary.includes('check-circle-fill-16.svg'));
+assert.ok(allPassingSummary.includes('x-circle-fill-16.svg'));
 assert.ok(!allPassingSummary.includes(' · 0 flaky'));
 assert.ok(!allPassingSummary.includes(' · 0 other'));
 
