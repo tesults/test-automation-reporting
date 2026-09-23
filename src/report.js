@@ -464,7 +464,7 @@ function renderSummary(data, context = {}) {
   const flaky = cases.filter(isFlaky);
 
   if (failed.length) {
-    markdown += `### Failures · ${failed.length}\n\n`;
+    markdown += `**Failures** · ${failed.length}\n\n`;
     const visibleFailures = failed.slice(0, 50);
     visibleFailures.forEach((testCase, index) => {
       markdown += renderFailure(testCase, context);
@@ -476,7 +476,7 @@ function renderSummary(data, context = {}) {
   }
 
   if (flaky.length) {
-    markdown += `### Flaky tests · ${flaky.length}\n\n`;
+    markdown += `**Flaky tests** · ${flaky.length}\n\n`;
     const visibleFlaky = flaky.slice(0, 25);
     visibleFlaky.forEach((testCase, index) => {
       markdown += renderFlaky(testCase, context);
