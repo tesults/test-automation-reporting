@@ -6,7 +6,7 @@ inputs:
   upload-attachments:
     description: Upload screenshots, logs, and other captured test files as a GitHub Actions artifact.
     required: false
-    default: "true"
+    default: "false"
 
 runs:
   using: node24
