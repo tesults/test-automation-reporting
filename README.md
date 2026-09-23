@@ -1,6 +1,6 @@
 # Test Automation Reporting for GitHub Actions
 
-Turn your automated test run into a clear, useful GitHub report — without changing the command that runs your tests and without requiring a Tesults account.
+Turn your automated test run into a clear, useful GitHub report, without changing the command that runs your tests and without requiring a Tesults account.
 
 The report is designed for the person debugging the run: failures first, clean error messages, source links, retries, steps, stdout/stderr, screenshots and other captured files.
 
@@ -11,7 +11,7 @@ The report is designed for the person debugging the run: failures first, clean e
 - Clickable source locations
 - Retry history
 - Nested test steps
-- Standard output and standard error when available — shown inline when short and collapsed when long
+- Standard output and standard error when available, shown inline when short and collapsed when long
 - Screenshots, logs, traces, and other captured files grouped with readable names in the report
 - Failure annotations on the relevant source file
 - A compact all-tests view
@@ -56,7 +56,7 @@ The order matters: the action runs once before your tests to provide an output l
 
 ## Screenshots and other files
 
-Files captured by the framework reporter — such as screenshots, logs, traces, and text evidence — are listed in the report without creating persistent GitHub storage by default.
+Files captured by the framework reporter, such as screenshots, logs, traces, and text evidence, are listed in the report without creating persistent GitHub storage by default.
 
 If you want downloadable copies after the runner is gone, explicitly opt in to GitHub Actions artifact storage:
 
@@ -94,7 +94,7 @@ The same framework reporter can produce this GitHub report and upload the run to
 
 This action is free and does not require a Tesults account.
 
-[Tesults](https://www.tesults.com/?utm_source=github&utm_medium=action&utm_campaign=test-automation-reporting&utm_content=readme) is for the cross-run and cross-system view: test history, automated regression detection, flaky-test analysis, AI failure intelligence, release tracking, notifications, and consolidated test results across your systems.
+[Tesults](https://www.tesults.com/?i=ga) is for the cross-run and cross-system view: test history, automated regression detection, flaky-test analysis, AI failure intelligence, release tracking, notifications, and consolidated test results across your systems.
 
 ## License
 
