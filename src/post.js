@@ -100,7 +100,7 @@ function parseArtifactUrl(output) {
 }
 
 function uploadAttachments(data) {
-  if (String(process.env.INPUT_UPLOAD_ATTACHMENTS || 'true').toLowerCase() === 'false') {
+  if (String(process.env.INPUT_UPLOAD_ATTACHMENTS || 'false').toLowerCase() !== 'true') {
     return undefined;
   }
 
