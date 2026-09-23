@@ -30,7 +30,7 @@ function resultCounts(data) {
   const cases = testCasesFrom(data);
   return {
     total: cases.length,
-    passed: cases.filter((testCase) => testCase.result === 'pass').length,
+    passed: cases.filter((testCase) => testCase.result === 'pass' && !isFlaky(testCase)).length,
     failed: cases.filter((testCase) => testCase.result === 'fail').length,
     flaky: cases.filter(isFlaky).length,
     other: cases.filter((testCase) => testCase.result !== 'pass' && testCase.result !== 'fail').length
@@ -317,7 +317,12 @@ function renderFailure(testCase, context) {
   markdown += renderRetrySummary(testCase);
 
   if (info.message) {
-    markdown += `**Failure**\n\n${markdownText(info.message)}\n\n`;
+    markdown += '**Failure**\n\n';
+    if (info.message.includes('\n')) {
+      markdown += `\`\`\`text\n${codeBlock(info.message).slice(0, 4000)}\n\`\`\`\n\n`;
+    } else {
+      markdown += `${markdownText(info.message)}\n\n`;
+    }
   }
 
   if (info.detail && info.detail !== info.message) {
