@@ -20,15 +20,16 @@ function emitError(message, location) {
   if (location && location.file) properties.push(`file=${escapeProperty(location.file)}`);
   if (location && location.line) properties.push(`line=${location.line}`);
   if (location && location.col) properties.push(`col=${location.col}`);
-
   const propertyText = properties.length ? ` ${properties.join(',')}` : '';
   process.stdout.write(`::error${propertyText}::${escapeMessage(message)}${os.EOL}`);
 }
 
 function appendSummary(markdown) {
-  if (process.env.GITHUB_STEP_SUMMARY) {
-    fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown + os.EOL);
-  }
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown + os.EOL);
+}
+
+function errorSummary(message) {
+  return `# ❌ Test Results\n\n${message}\n\n---\n\n[Tesults](https://www.tesults.com/?utm_source=github&utm_medium=action&utm_campaign=test-automation-reporting)\n`;
 }
 
 const outputFile = process.env.STATE_tesults_output_file || process.env.TESULTS_OUTPUT_FILE;
@@ -36,13 +37,12 @@ const outputFile = process.env.STATE_tesults_output_file || process.env.TESULTS_
 if (!outputFile || !fs.existsSync(outputFile)) {
   const message = 'No Tesults results file was produced. Make sure a Tesults framework reporter is installed and configured, and that this action appears before the test step.';
   emitError(message);
-  appendSummary(`# Test Automation Reporting by Tesults\n\n${message}\n`);
+  appendSummary(errorSummary(message));
   process.exitCode = 1;
 } else {
   try {
     const data = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
-    const summary = renderSummary(data);
-    appendSummary(summary);
+    appendSummary(renderSummary(data, process.env.GITHUB_WORKSPACE));
 
     for (const annotation of annotations(data, process.env.GITHUB_WORKSPACE, 10)) {
       emitError(`${annotation.title}: ${annotation.message}`, annotation.location);
@@ -53,7 +53,7 @@ if (!outputFile || !fs.existsSync(outputFile)) {
   } catch (error) {
     const message = `Unable to process Tesults results: ${error.message}`;
     emitError(message);
-    appendSummary(`# Test Automation Reporting by Tesults\n\n${message}\n`);
+    appendSummary(errorSummary(message));
     process.exitCode = 1;
   }
 }
