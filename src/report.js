@@ -134,7 +134,7 @@ function octiconUrl(filename, context = {}) {
 }
 
 function octicon(filename, alt, context = {}) {
-  return `<img src="${octiconUrl(filename, context)}" width="16" height="16" alt="${alt}" />`;
+  return `<img src="${octiconUrl(filename, context)}" width="16" height="16" align="middle" alt="${alt}" />`;
 }
 
 function statusIcon(result, context = {}) {
