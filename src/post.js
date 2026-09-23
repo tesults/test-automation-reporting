@@ -112,7 +112,7 @@ function uploadAttachments(data) {
 
   const vendorDir = path.join(__dirname, '..', 'vendor');
   const uploaderParts = fs.existsSync(vendorDir)
-    ? fs.readdirSync(vendorDir).filter((name) => /^upload-artifact\\.part\\d+$/.test(name)).sort()
+    ? fs.readdirSync(vendorDir).filter((name) => /^upload-artifact\.part\d+$/.test(name)).sort()
     : [];
   if (!uploaderParts.length) {
     emitWarning('Captured test files could not be uploaded because the bundled GitHub artifact uploader is missing.');
