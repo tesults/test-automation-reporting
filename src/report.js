@@ -152,14 +152,35 @@ function suiteResults(cases) {
   return [...suites.values()];
 }
 
-function renderSummaryTable(counts) {
+function totalDuration(cases) {
+  return cases.reduce((total, testCase) => {
+    const duration = Number(testCase && testCase.duration);
+    return Number.isFinite(duration) && duration >= 0 ? total + duration : total;
+  }, 0);
+}
+
+function renderStatusHeadline(counts) {
+  if (counts.failed > 0) {
+    return `### ❌ ${counts.failed} ${counts.failed === 1 ? 'test failed' : 'tests failed'}\n\n`;
+  }
+  if (counts.flaky > 0) {
+    return `### ⚠️ Passed with ${counts.flaky} flaky ${counts.flaky === 1 ? 'test' : 'tests'}\n\n`;
+  }
+  if (counts.other > 0) {
+    return `### ⚪ Completed with ${counts.other} other ${counts.other === 1 ? 'result' : 'results'}\n\n`;
+  }
+  return '### ✅ All tests passed\n\n';
+}
+
+function renderSummaryTable(counts, duration) {
   const columns = [
-    { label: 'Total', value: `**${counts.total}**` },
+    { label: 'Tests', value: `**${counts.total}**` },
     { label: 'Passed', value: `✅ **${counts.passed}**` },
     { label: 'Failed', value: `❌ **${counts.failed}**` }
   ];
   if (counts.flaky > 0) columns.push({ label: 'Flaky', value: `⚠️ **${counts.flaky}**` });
   if (counts.other > 0) columns.push({ label: 'Other', value: `⚪ **${counts.other}**` });
+  if (duration) columns.push({ label: 'Duration', value: `**${duration}**` });
 
   let markdown = `| ${columns.map((column) => column.label).join(' | ')} |\n`;
   markdown += `| ${columns.map(() => '---:').join(' | ')} |\n`;
@@ -295,13 +316,13 @@ function groupedAttachmentNames(files) {
   return [...groups.entries()];
 }
 
-function renderAttachments(testCase, attachmentUrl) {
+function renderAttachments(testCase, context = {}) {
   const files = attachmentFiles(testCase);
   if (!files.length) return '';
 
   const screenshots = files.filter(isImageFile);
   const others = files.filter((file) => !isImageFile(file));
-  let markdown = '';
+  let markdown = `<details><summary>Captured files (${files.length})</summary>\n\n`;
 
   if (screenshots.length) {
     markdown += '**Screenshots**\n\n';
@@ -319,12 +340,13 @@ function renderAttachments(testCase, attachmentUrl) {
     markdown += '\n';
   }
 
-  if (attachmentUrl) {
-    markdown += `[Download captured files from this run](${attachmentUrl})\n\n`;
-  } else {
-    markdown += '_Captured files are listed above. GitHub artifact upload was unavailable for this run._\n\n';
+  if (context.attachmentUrl) {
+    markdown += `[Download captured files](${context.attachmentUrl})\n\n`;
+  } else if (context.storeAttachments) {
+    markdown += '_Attachment storage was requested but was unavailable for this run._\n\n';
   }
 
+  markdown += '</details>\n\n';
   return markdown;
 }
 
@@ -391,7 +413,7 @@ function renderFailure(testCase, context) {
   if (source) meta.push(source);
   const duration = formatDuration(testCase.duration);
   if (duration) meta.push(duration);
-  if (meta.length) markdown += `${meta.join(' · ')}\n\n`;
+  if (meta.length) markdown += `_${meta.join(' · ')}_\n\n`;
 
   markdown += renderDescriptionAndParams(testCase);
   markdown += renderRetrySummary(testCase);
@@ -417,7 +439,7 @@ function renderFailure(testCase, context) {
   }
 
   markdown += renderOutputs(testCase);
-  markdown += renderAttachments(testCase, context.attachmentUrl);
+  markdown += renderAttachments(testCase, context);
   return markdown;
 }
 
@@ -426,11 +448,10 @@ function renderFlaky(testCase, context) {
   const source = sourceReference(testCase, context);
   const duration = formatDuration(testCase.duration);
   const meta = [testCase.suite ? markdownText(testCase.suite) : '', source, duration].filter(Boolean);
-  if (meta.length) markdown += `${meta.join(' · ')}\n\n`;
-  markdown += `Passed after ${retryCount(testCase)} ${retryCount(testCase) === 1 ? 'retry' : 'retries'}.\n\n`;
+  if (meta.length) markdown += `_${meta.join(' · ')}_\n\n`;
   markdown += renderRetrySummary(testCase);
   markdown += renderOutputs(testCase);
-  markdown += renderAttachments(testCase, context.attachmentUrl);
+  markdown += renderAttachments(testCase, context);
   return markdown;
 }
 
@@ -450,24 +471,18 @@ function renderTestTable(cases, context) {
 function renderSummary(data, context = {}) {
   const cases = testCasesFrom(data);
   const counts = resultCounts(data);
-  const overallIcon = counts.failed > 0 ? '❌' : counts.flaky > 0 ? '⚠️' : '✅';
+  const duration = formatDuration(totalDuration(cases));
 
-  let markdown = `# ${overallIcon} Test Results\n\n`;
-  markdown += renderSummaryTable(counts);
-
-  if (counts.failed === 0 && counts.flaky === 0 && counts.other === 0 && cases.length) {
-    markdown += '> ✅ **All tests passed.**\n\n';
-  } else if (counts.failed === 0 && counts.flaky > 0) {
-    markdown += `> ⚠️ **${counts.flaky} flaky ${counts.flaky === 1 ? 'test' : 'tests'} passed after retry.**\n\n`;
-  }
-
+  let markdown = '# Test Results\n\n';
+  markdown += renderStatusHeadline(counts);
+  markdown += renderSummaryTable(counts, duration);
   markdown += renderSuiteBreakdown(cases);
 
   const failed = cases.filter((testCase) => testCase.result === 'fail');
   const flaky = cases.filter(isFlaky);
 
   if (failed.length) {
-    markdown += '## Failures\n\n';
+    markdown += `## Failures (${failed.length})\n\n`;
     const visibleFailures = failed.slice(0, 50);
     visibleFailures.forEach((testCase, index) => {
       markdown += renderFailure(testCase, context);
@@ -479,7 +494,7 @@ function renderSummary(data, context = {}) {
   }
 
   if (flaky.length) {
-    markdown += '## Flaky tests\n\n';
+    markdown += `## Flaky tests (${flaky.length})\n\n`;
     const visibleFlaky = flaky.slice(0, 25);
     visibleFlaky.forEach((testCase, index) => {
       markdown += renderFlaky(testCase, context);
