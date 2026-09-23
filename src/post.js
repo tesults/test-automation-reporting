@@ -178,6 +178,8 @@ function reportContext(attachmentUrl) {
   return {
     attachmentUrl,
     storeAttachments: String(process.env['INPUT_STORE-ATTACHMENTS'] || 'false').toLowerCase() === 'true',
+    actionRepository: process.env.GITHUB_ACTION_REPOSITORY || 'tesults/test-automation-reporting',
+    actionRef: process.env.GITHUB_ACTION_REF || 'v1',
     repository: process.env.GITHUB_REPOSITORY,
     serverUrl: process.env.GITHUB_SERVER_URL || 'https://github.com',
     sha: process.env.GITHUB_SHA,
