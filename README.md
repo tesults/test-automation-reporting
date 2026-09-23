@@ -12,7 +12,7 @@ The report is designed for the person debugging the run: failures first, clean e
 - Retry history
 - Nested test steps
 - Standard output and standard error when available — shown inline when short and collapsed when long
-- Screenshots, logs, traces, and other test files grouped with readable names and uploaded as a GitHub Actions artifact
+- Screenshots, logs, traces, and other captured files grouped with readable names in the report
 - Failure annotations on the relevant source file
 - A compact all-tests view
 
@@ -56,15 +56,17 @@ The order matters: the action runs once before your tests to provide an output l
 
 ## Screenshots and other files
 
-Files captured by the framework reporter — such as screenshots, logs, traces, and text evidence — are collected after the test run and uploaded to GitHub Actions artifacts. The report lists the captured files and links to the artifact.
+Files captured by the framework reporter — such as screenshots, logs, traces, and text evidence — are listed in the report without creating persistent GitHub storage by default.
 
-To keep files on the runner only and disable artifact upload:
+If you want downloadable copies after the runner is gone, explicitly opt in to GitHub Actions artifact storage:
 
 ```yaml
 - uses: tesults/test-automation-reporting@v1
   with:
-    upload-attachments: false
+    upload-attachments: true
 ```
+
+GitHub can bill artifact storage when an account exceeds its included allowance, so attachment upload is deliberately opt-in. When enabled, this action keeps its artifact for 1 day by default to minimize storage use.
 
 ## How it works
 
