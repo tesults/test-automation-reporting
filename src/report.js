@@ -132,6 +132,53 @@ function statusIcon(result) {
   return '⚪';
 }
 
+function suiteResults(cases) {
+  const suites = new Map();
+
+  for (const testCase of cases) {
+    const suite = String(testCase.suite || 'Ungrouped');
+    if (!suites.has(suite)) {
+      suites.set(suite, { name: suite, total: 0, passed: 0, failed: 0, flaky: 0, other: 0 });
+    }
+
+    const counts = suites.get(suite);
+    counts.total += 1;
+    if (testCase.result === 'fail') counts.failed += 1;
+    else if (isFlaky(testCase)) counts.flaky += 1;
+    else if (testCase.result === 'pass') counts.passed += 1;
+    else counts.other += 1;
+  }
+
+  return [...suites.values()];
+}
+
+function renderSummaryTable(counts) {
+  let markdown = '| Total | Passed | Failed | Flaky | Other |\n';
+  markdown += '| ---: | ---: | ---: | ---: | ---: |\n';
+  markdown += `| **${counts.total}** | ✅ **${counts.passed}** | ❌ **${counts.failed}** | ⚠️ **${counts.flaky}** | ⚪ **${counts.other}** |\n\n`;
+  return markdown;
+}
+
+function renderSuiteBreakdown(cases) {
+  const suites = suiteResults(cases);
+  if (suites.length <= 1) return '';
+
+  let markdown = `<details><summary>Suite breakdown (${suites.length})</summary>\n\n`;
+  markdown += '| Suite | Tests | Passed | Failed | Flaky | Other |\n';
+  markdown += '| --- | ---: | ---: | ---: | ---: | ---: |\n';
+
+  for (const suite of suites.slice(0, 100)) {
+    markdown += `| ${markdownText(suite.name)} | **${suite.total}** | ✅ ${suite.passed} | ❌ ${suite.failed} | ⚠️ ${suite.flaky} | ⚪ ${suite.other} |\n`;
+  }
+
+  if (suites.length > 100) {
+    markdown += `\n_Only the first 100 of ${suites.length} suites are shown._\n`;
+  }
+
+  markdown += '\n</details>\n\n';
+  return markdown;
+}
+
 function shouldHideStep(step) {
   const name = String(step && step.name || '').trim();
   const category = String(step && step._Category || '').toLowerCase();
@@ -398,23 +445,26 @@ function renderSummary(data, context = {}) {
   const overallIcon = counts.failed > 0 ? '❌' : counts.flaky > 0 ? '⚠️' : '✅';
 
   let markdown = `# ${overallIcon} Test Results\n\n`;
-  const summaryParts = [
-    `**${counts.total}** total`,
-    `✅ **${counts.passed}** passed`,
-    `❌ **${counts.failed}** failed`
-  ];
-  if (counts.flaky > 0) summaryParts.push(`⚠️ **${counts.flaky}** flaky`);
-  if (counts.other > 0) summaryParts.push(`⚪ **${counts.other}** other`);
-  markdown += summaryParts.join(' · ') + '\n\n';
+  markdown += renderSummaryTable(counts);
+
+  if (counts.failed === 0 && counts.flaky === 0 && counts.other === 0 && cases.length) {
+    markdown += '> ✅ **All tests passed.**\n\n';
+  } else if (counts.failed === 0 && counts.flaky > 0) {
+    markdown += `> ⚠️ **${counts.flaky} flaky ${counts.flaky === 1 ? 'test' : 'tests'} passed after retry.**\n\n`;
+  }
+
+  markdown += renderSuiteBreakdown(cases);
 
   const failed = cases.filter((testCase) => testCase.result === 'fail');
   const flaky = cases.filter(isFlaky);
 
   if (failed.length) {
     markdown += '## Failures\n\n';
-    for (const testCase of failed.slice(0, 50)) {
+    const visibleFailures = failed.slice(0, 50);
+    visibleFailures.forEach((testCase, index) => {
       markdown += renderFailure(testCase, context);
-    }
+      if (index < visibleFailures.length - 1) markdown += '---\n\n';
+    });
     if (failed.length > 50) {
       markdown += `_Showing the first 50 of ${failed.length} failures._\n\n`;
     }
@@ -422,13 +472,11 @@ function renderSummary(data, context = {}) {
 
   if (flaky.length) {
     markdown += '## Flaky tests\n\n';
-    for (const testCase of flaky.slice(0, 25)) {
+    const visibleFlaky = flaky.slice(0, 25);
+    visibleFlaky.forEach((testCase, index) => {
       markdown += renderFlaky(testCase, context);
-    }
-  }
-
-  if (!failed.length && !flaky.length && cases.length) {
-    markdown += 'All tests passed.\n\n';
+      if (index < visibleFlaky.length - 1) markdown += '---\n\n';
+    });
   }
 
   if (cases.length) {
