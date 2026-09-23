@@ -82,7 +82,7 @@ const summary = renderSummary(data, {
   attachmentUrl: 'https://github.com/tesults/example/actions/runs/1/artifacts/2'
 });
 
-assert.ok(summary.startsWith('**Test results** · 2 tests · 200 ms'));
+assert.ok(summary.startsWith('## Test results · 2 tests · 200 ms'));
 assert.ok(summary.includes('| Passed | Failed | Flaky |'));
 assert.ok(!summary.includes('Playwright Test Results'));
 assert.ok(summary.includes('shows payment error'));
@@ -160,7 +160,7 @@ const allPassing = {
   }
 };
 const allPassingSummary = renderSummary(allPassing);
-assert.ok(allPassingSummary.startsWith('**Test results** · 2 tests · 30 ms'));
+assert.ok(allPassingSummary.startsWith('## Test results · 2 tests · 30 ms'));
 assert.ok(allPassingSummary.includes('| Passed | Failed |'));
 assert.ok(!allPassingSummary.includes(' · 0 flaky'));
 assert.ok(!allPassingSummary.includes(' · 0 other'));
