@@ -153,9 +153,17 @@ function suiteResults(cases) {
 }
 
 function renderSummaryTable(counts) {
-  let markdown = '| Total | Passed | Failed | Flaky | Other |\n';
-  markdown += '| ---: | ---: | ---: | ---: | ---: |\n';
-  markdown += `| **${counts.total}** | ✅ **${counts.passed}** | ❌ **${counts.failed}** | ⚠️ **${counts.flaky}** | ⚪ **${counts.other}** |\n\n`;
+  const columns = [
+    { label: 'Total', value: `**${counts.total}**` },
+    { label: 'Passed', value: `✅ **${counts.passed}**` },
+    { label: 'Failed', value: `❌ **${counts.failed}**` }
+  ];
+  if (counts.flaky > 0) columns.push({ label: 'Flaky', value: `⚠️ **${counts.flaky}**` });
+  if (counts.other > 0) columns.push({ label: 'Other', value: `⚪ **${counts.other}**` });
+
+  let markdown = `| ${columns.map((column) => column.label).join(' | ')} |\n`;
+  markdown += `| ${columns.map(() => '---:').join(' | ')} |\n`;
+  markdown += `| ${columns.map((column) => column.value).join(' | ')} |\n\n`;
   return markdown;
 }
 
