@@ -1,6 +1,6 @@
 const path = require('path');
 
-const TESULTS_URL = 'https://www.tesults.com/?utm_source=github&utm_medium=action&utm_campaign=test-automation-reporting&utm_content=job-summary';
+const TESULTS_URL = 'https://www.tesults.com/?i=gh';
 
 const STANDARD_FIELDS = new Set([
   'name', 'result', 'suite', 'desc', 'reason', 'params', 'files', 'steps',
