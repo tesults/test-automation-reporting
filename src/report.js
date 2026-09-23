@@ -256,7 +256,7 @@ function renderFailure(testCase, workspace) {
   markdown += renderDescription(testCase);
 
   const error = errorObject(testCase);
-  if (error.message) markdown += `**Failure**\n\n${codeBlock(error.message)}\n\n`;
+  if (error.message) markdown += `**Failure**\n\n\`\`\`text\n${codeBlock(error.message).slice(0, 3000)}\n\`\`\`\n\n`;
   if (error.stack && error.stack !== error.message) {
     markdown += `<details><summary>Full error details</summary>\n\n\`\`\`text\n${codeBlock(error.stack).slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
   }
