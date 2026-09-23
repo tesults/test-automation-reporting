@@ -145,7 +145,7 @@ function uploadAttachments(data) {
     INPUT_NAME: artifactName,
     INPUT_PATH: stagingRoot,
     'INPUT_IF-NO-FILES-FOUND': 'ignore',
-    'INPUT_RETENTION-DAYS': '',
+    'INPUT_RETENTION-DAYS': '1',
     'INPUT_COMPRESSION-LEVEL': '6',
     INPUT_OVERWRITE: 'false',
     'INPUT_INCLUDE-HIDDEN-FILES': 'false',
