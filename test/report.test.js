@@ -3,7 +3,8 @@ const path = require('path');
 const {
   annotations,
   renderSummary,
-  resultCounts
+  resultCounts,
+  stripAnsi
 } = require('../src/report');
 
 const workspace = path.resolve('/workspace');
@@ -15,28 +16,40 @@ const data = {
         suite: 'checkout',
         name: 'completes purchase',
         result: 'pass',
-        duration: 120
+        duration: 120,
+        _Retries: [{ result: 'fail', duration: 90 }]
       },
       {
         suite: 'checkout',
         name: 'shows payment error',
         result: 'fail',
         duration: 80,
+        desc: 'Shows a useful error when payment is declined.',
+        params: { browser: 'chromium' },
+        browserVersion: '140',
         reason: JSON.stringify({
-          message: 'Expected error message',
-          stack: 'Error: Expected error message\n    at test.js:12:4'
+          message: '\u001b[31mExpected: 2\u001b[39m\n\u001b[32mReceived: 1\u001b[39m',
+          stack: '\u001b[31mError: Expected: 2\u001b[39m\nReceived: 1\n    at test.js:12:4'
         }),
         _Location: JSON.stringify({
           file: path.join(workspace, 'tests', 'checkout.spec.js'),
           line: 12,
           column: 4
         }),
-        _Retries: [{ result: 'fail' }],
-        files: ['/tmp/screenshot.png'],
+        _Retries: [{ result: 'fail', duration: 70 }],
+        '_Standard output': JSON.stringify(['starting checkout\n', '\u001b[32mrequest sent\u001b[39m\n']),
+        '_Standard error': JSON.stringify(['gateway declined\n']),
+        files: [
+          '/tmp/payment-error-0123456789abcdef0123456789abcdef.png',
+          '/tmp/network-abcdef0123456789abcdef0123456789.log'
+        ],
         steps: [
+          { name: 'Before Hooks', result: 'pass', _Category: 'hook' },
           {
             name: 'submit payment',
-            result: 'fail'
+            result: 'fail',
+            duration: 25,
+            steps: [{ name: 'expect error message', result: 'fail', duration: 5 }]
           }
         ]
       },
@@ -55,24 +68,132 @@ const data = {
 const counts = resultCounts(data);
 assert.deepStrictEqual(counts, {
   total: 2,
-  passed: 1,
+  passed: 0,
   failed: 1,
+  flaky: 1,
   other: 0
 });
 
-const summary = renderSummary(data);
-assert.ok(summary.includes('Test Automation Reporting by Tesults'));
-assert.ok(summary.includes('playwright'));
+const summary = renderSummary(data, {
+  workspace,
+  serverUrl: 'https://github.com',
+  repository: 'tesults/example',
+  sha: 'abc123',
+  attachmentUrl: 'https://github.com/tesults/example/actions/runs/1/artifacts/2',
+  actionRepository: 'tesults/test-automation-reporting',
+  actionRef: 'report-v1.0.1'
+});
+
+assert.ok(summary.startsWith('## Test results · 2 tests · 200 ms'));
+assert.ok(summary.includes('| Passed | Failed | Flaky |'));
+assert.ok(summary.includes('| :---: | :---: | :---: |'));
+assert.ok(summary.includes('<br>**0**'));
+assert.ok(summary.includes('<br>**1**'));
+assert.ok(summary.includes('check-circle-fill-16.svg'));
+assert.ok(summary.includes('x-circle-fill-16.svg'));
+assert.ok(summary.includes('alert-fill-16.svg'));
+assert.ok(summary.includes('raw.githubusercontent.com/tesults/test-automation-reporting/report-v1.0.1/assets/octicons/'));
+assert.ok(!summary.includes('✅'));
+assert.ok(!summary.includes('❌'));
+assert.ok(!summary.includes('⚠️'));
+assert.ok(!summary.includes('Playwright Test Results'));
 assert.ok(summary.includes('shows payment error'));
-assert.ok(summary.includes('Expected error message'));
-assert.ok(summary.includes('Previous attempts:** 1'));
-assert.ok(summary.includes('Attachments:** 1'));
+assert.ok(summary.includes('Expected: 2'));
+assert.ok(summary.includes('Received: 1'));
+assert.ok(summary.includes('Shows a useful error'));
+assert.ok(summary.includes('browser'));
+assert.ok(summary.includes('browserVersion'));
+assert.ok(summary.includes('**Attempts** · 1 failed → 2 passed'));
 assert.ok(summary.includes('submit payment'));
+assert.ok(summary.includes('expect error message'));
+assert.ok(!summary.includes('Before Hooks'));
+assert.ok(summary.includes('<details><summary>Standard output</summary>'));
+assert.ok(summary.includes('starting checkout'));
+assert.ok(summary.includes('request sent'));
+assert.ok(summary.includes('<details><summary>Standard error</summary>'));
+assert.ok(summary.includes('gateway declined'));
+assert.ok(summary.includes('payment error.png'));
+assert.ok(!summary.includes('0123456789abcdef'));
+assert.ok(summary.includes('network.log'));
+assert.ok(!summary.includes('abcdef0123456789'));
+assert.ok(summary.includes('<details><summary>Captured files (2)</summary>'));
+assert.ok(summary.includes('Download captured files'));
+assert.ok(summary.includes('https://github.com/tesults/example/blob/abc123/tests/checkout.spec.js#L12'));
+assert.ok(summary.includes('[**Tesults**]'));
+assert.ok(summary.includes('enhanced test automation reporting and failure intelligence'));
+assert.ok(!summary.includes('\u001b['));
+
+assert.strictEqual(stripAnsi('\u001b[31mred\u001b[0m'), 'red');
 
 const reportAnnotations = annotations(data, workspace);
 assert.strictEqual(reportAnnotations.length, 1);
 assert.strictEqual(reportAnnotations[0].location.file, path.join('tests', 'checkout.spec.js'));
 assert.strictEqual(reportAnnotations[0].location.line, 12);
 assert.strictEqual(reportAnnotations[0].location.col, 4);
+assert.ok(reportAnnotations[0].message.includes('Expected: 2'));
+assert.ok(!reportAnnotations[0].message.includes('\u001b['));
+
+const longOutputData = {
+  results: {
+    cases: [{
+      suite: 'logs',
+      name: 'long output',
+      result: 'fail',
+      reason: 'failed',
+      '_Standard output': JSON.stringify(['x'.repeat(1700) + ' line 20'])
+    }]
+  },
+  metadata: { test_framework: 'playwright' }
+};
+const longOutputSummary = renderSummary(longOutputData);
+assert.ok(longOutputSummary.includes('<details><summary>Standard output</summary>'));
+assert.ok(longOutputSummary.includes('line 20'));
+
+
+const multiSuite = {
+  results: {
+    cases: [
+      { suite: 'checkout', name: 'a', result: 'pass', duration: 10 },
+      { suite: 'auth', name: 'b', result: 'fail', duration: 20, reason: 'boom' }
+    ]
+  }
+};
+const multiSuiteSummary = renderSummary(multiSuite);
+assert.ok(multiSuiteSummary.includes('<details><summary>Suite breakdown (2)</summary>'));
+assert.ok(multiSuiteSummary.includes('| checkout | **1** | 1 | 0 | 0 | 0 |'));
+assert.ok(multiSuiteSummary.includes('| auth | **1** | 0 | 1 | 0 | 0 |'));
+
+const allPassing = {
+  results: {
+    cases: [
+      { suite: 'smoke', name: 'a', result: 'pass', duration: 10 },
+      { suite: 'smoke', name: 'b', result: 'pass', duration: 20 }
+    ]
+  }
+};
+const allPassingSummary = renderSummary(allPassing);
+assert.ok(allPassingSummary.startsWith('## Test results · 2 tests · 30 ms'));
+assert.ok(allPassingSummary.includes('| Passed | Failed |'));
+assert.ok(allPassingSummary.includes('check-circle-fill-16.svg'));
+assert.ok(allPassingSummary.includes('x-circle-fill-16.svg'));
+assert.ok(!allPassingSummary.includes(' · 0 flaky'));
+assert.ok(!allPassingSummary.includes(' · 0 other'));
+
+
+const noStorageSummary = renderSummary({
+  results: {
+    cases: [{
+      suite: 'files',
+      name: 'captures screenshot',
+      result: 'fail',
+      reason: 'example failure',
+      duration: 5,
+      files: ['/tmp/example.png']
+    }]
+  }
+}, { storeAttachments: false });
+assert.ok(noStorageSummary.includes('<details><summary>Captured files (1)</summary>'));
+assert.ok(!noStorageSummary.includes('storage was requested'));
+assert.ok(!noStorageSummary.includes('artifact upload was unavailable'));
 
 console.log('All tests passed.');

@@ -1,22 +1,32 @@
 # Test Automation Reporting for GitHub Actions
 
-Free GitHub-native test automation reporting powered by the Tesults JSON Standard.
+Turn your automated test run into a clear, useful GitHub report, without changing the command that runs your tests and without requiring a Tesults account.
 
-The action does **not** run your tests and does not require a Tesults account. Your framework's Tesults reporter collects the test results, and this action publishes those results in GitHub.
+The report is designed for the person debugging the run: failures first, clean error messages, source links, retries, steps, stdout/stderr, screenshots and other captured files.
+
+## What you get
+
+- Clear pass/fail/flaky counts
+- Failure messages without terminal color-code noise
+- Clickable source locations
+- Retry history
+- Nested test steps
+- Standard output and standard error when available, shown inline when short and collapsed when long
+- Screenshots, logs, traces, and other captured files grouped with readable names in the report
+- Failure annotations on the relevant source file
+- A compact all-tests view
 
 ## Playwright
 
-### 1. Install the Tesults reporter
+### 1. Install the Tesults Playwright reporter
 
 ```sh
 npm install --save-dev playwright-tesults-reporter@^1.6.1
 ```
 
-`playwright-tesults-reporter` 1.6.1 or later is required.
+### 2. Add it to your Playwright config
 
-### 2. Add the reporter to Playwright
-
-Keep any reporters you already use and add `playwright-tesults-reporter`:
+Keep the reporters you already use:
 
 ```js
 // playwright.config.js
@@ -40,38 +50,52 @@ No Tesults target token is required for GitHub reporting.
   run: npm run test:e2e
 ```
 
-**The order matters:** put the Tesults action before the step that runs the tests. You do not need to change your existing test command.
+That is all. Keep your normal Playwright command.
 
-The action supplies `TESULTS_OUTPUT_FILE` to the reporter. After the tests finish, the action reads the standard Tesults JSON output and publishes the result to the GitHub job summary with failure annotations.
+The order matters: the action runs once before your tests to provide an output location, then its post step automatically creates the report after the tests finish.
+
+## Screenshots and other files
+
+Files captured by the framework reporter, such as screenshots, logs, traces, and text evidence, are listed in the report without creating persistent GitHub storage by default.
+
+If you want downloadable copies after the runner is gone, explicitly opt in to GitHub Actions artifact storage:
+
+```yaml
+- uses: tesults/test-automation-reporting@v1
+  with:
+    store-attachments: true
+```
+
+GitHub can bill artifact storage when an account exceeds its included allowance, so attachment storage is deliberately opt-in. When enabled, this action keeps its artifact for 1 day by default to minimize storage use.
 
 ## How it works
 
 ```text
-Playwright
-    |
-    v
-playwright-tesults-reporter
-    |
-    v
+Your test framework
+        ↓
+Tesults framework reporter
+        ↓
 Tesults JSON Standard
-    |
-    v
+        ↓
 tesults/test-automation-reporting
-    |
-    v
-GitHub summary and annotations
+        ↓
+GitHub job summary + annotations + artifacts
 ```
 
-The action itself is framework-neutral. Jest, Vitest, and other Tesults integrations can use the same action once their reporters support local Tesults JSON output.
+The action is framework-neutral. Playwright is supported first; other Tesults framework integrations can use the same action as they add local Tesults JSON output.
+
+The data format is the [Tesults JSON Standard](https://www.tesults.com/docs/tesults-json-data-standard), which supports test names and results as well as descriptions, failure reasons, parameters, files, nested steps, timing data, raw results, and custom fields.
 
 ## Existing Tesults customers
 
-The same reporter can write the local results file for this action and upload to Tesults in the same test run. There is no need to configure a second reporter instance.
+The same framework reporter can produce this GitHub report and upload the run to Tesults at the same time. You do not need a second reporter instance.
 
-## Current status
+## About Tesults
 
-The initial release supports Playwright. More Tesults framework integrations are planned.
+This action is free and does not require a Tesults account.
 
-## Tesults
+[Tesults](https://www.tesults.com/?i=ga) is for the cross-run and cross-system view: test history, automated regression detection, flaky-test analysis, AI failure intelligence, release tracking, notifications, and consolidated test results across your systems.
 
-[Tesults](https://www.tesults.com) provides persistent test history, trends, flaky test detection, failure analysis, release tracking, notifications, and team-wide test reporting.
+## License
+
+MIT. Attachment storage includes the MIT-licensed GitHub `actions/upload-artifact` v7.0.1 runtime; see `vendor/upload-artifact-LICENSE`.

@@ -1,6 +1,12 @@
-name: Test Automation Reporting by Tesults
-description: Publish test automation results from Tesults reporters directly in GitHub.
+name: Test Automation Reporting for GitHub Actions
+description: GitHub-native test reports with failures, logs, retries, steps, screenshots, and attachments.
 author: Tesults
+
+inputs:
+  store-attachments:
+    description: Store screenshots, logs, and other captured test files as a GitHub Actions artifact for 1 day.
+    required: false
+    default: "false"
 
 runs:
   using: node24
@@ -9,5 +15,5 @@ runs:
   post-if: always()
 
 branding:
-  icon: check-circle
+  icon: bar-chart-2
   color: blue
