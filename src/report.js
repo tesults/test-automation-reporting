@@ -126,10 +126,21 @@ function formatDuration(milliseconds) {
   return `${minutes}m ${seconds}s`;
 }
 
-function statusIcon(result) {
-  if (result === 'pass') return '✅';
-  if (result === 'fail') return '❌';
-  return '⚪';
+function octiconUrl(filename, context = {}) {
+  const repository = context.actionRepository || 'tesults/test-automation-reporting';
+  const ref = context.actionRef || 'v1';
+  const encodedRef = encodeURIComponent(ref).replace(/%2F/g, '/');
+  return `https://raw.githubusercontent.com/${repository}/${encodedRef}/assets/octicons/${filename}`;
+}
+
+function octicon(filename, alt, context = {}) {
+  return `<img src="${octiconUrl(filename, context)}" width="16" height="16" alt="${alt}" />`;
+}
+
+function statusIcon(result, context = {}) {
+  if (result === 'pass') return octicon('check-circle-fill-16.svg', 'Passed', context);
+  if (result === 'fail') return octicon('x-circle-fill-16.svg', 'Failed', context);
+  return '•';
 }
 
 function suiteResults(cases) {
@@ -159,18 +170,20 @@ function totalDuration(cases) {
   }, 0);
 }
 
-function renderCompactHeader(counts, duration) {
+function renderCompactHeader(counts, duration, context = {}) {
   const testLabel = counts.total === 1 ? 'test' : 'tests';
   let markdown = `## Test results · ${counts.total} ${testLabel}`;
   if (duration) markdown += ` · ${duration}`;
   markdown += '\n\n';
 
   const columns = [
-    { label: 'Passed', value: `✅ ${counts.passed}` },
-    { label: 'Failed', value: `❌ ${counts.failed}` }
+    { label: 'Passed', value: `${octicon('check-circle-fill-16.svg', 'Passed', context)} ${counts.passed}` },
+    { label: 'Failed', value: `${octicon('x-circle-fill-16.svg', 'Failed', context)} ${counts.failed}` }
   ];
-  if (counts.flaky > 0) columns.push({ label: 'Flaky', value: `⚠️ ${counts.flaky}` });
-  if (counts.other > 0) columns.push({ label: 'Other', value: `⚪ ${counts.other}` });
+  if (counts.flaky > 0) {
+    columns.push({ label: 'Flaky', value: `${octicon('alert-fill-16.svg', 'Flaky', context)} ${counts.flaky}` });
+  }
+  if (counts.other > 0) columns.push({ label: 'Other', value: `• ${counts.other}` });
 
   markdown += `| ${columns.map((column) => column.label).join(' | ')} |\n`;
   markdown += `| ${columns.map(() => '---:').join(' | ')} |\n`;
@@ -207,7 +220,7 @@ function shouldHideStep(step) {
   return false;
 }
 
-function renderSteps(steps, depth = 0) {
+function renderSteps(steps, context = {}, depth = 0) {
   if (!Array.isArray(steps) || steps.length === 0) return '';
 
   let markdown = '';
@@ -216,8 +229,8 @@ function renderSteps(steps, depth = 0) {
     const indent = '  '.repeat(depth);
     const duration = formatDuration(step.duration);
     const suffix = duration ? ` <sub>${duration}</sub>` : '';
-    markdown += `${indent}- ${statusIcon(step.result)} ${markdownText(step.name || 'Step')}${suffix}\n`;
-    markdown += renderSteps(step.steps, depth + 1);
+    markdown += `${indent}- ${statusIcon(step.result, context)} ${markdownText(step.name || 'Step')}${suffix}\n`;
+    markdown += renderSteps(step.steps, context, depth + 1);
   }
   return markdown;
 }
@@ -419,7 +432,7 @@ function renderFailure(testCase, context) {
     markdown += `\`\`\`text\n${codeBlock(info.detail).slice(0, 16000)}\n\`\`\`\n\n</details>\n\n`;
   }
 
-  const steps = renderSteps(testCase.steps);
+  const steps = renderSteps(testCase.steps, context);
   if (steps) {
     markdown += '<details><summary>Steps</summary>\n\n';
     markdown += steps + '\n</details>\n\n';
@@ -450,7 +463,7 @@ function renderTestTable(cases, context) {
     const name = source
       ? `${markdownText(testCase.name || 'Unnamed test')}<br><sub>${source}</sub>`
       : markdownText(testCase.name || 'Unnamed test');
-    markdown += `| ${name} | ${markdownText(testCase.suite || '')} | ${statusIcon(testCase.result)} ${markdownText(testCase.result || 'unknown')} | ${formatDuration(testCase.duration)} |\n`;
+    markdown += `| ${name} | ${markdownText(testCase.suite || '')} | ${statusIcon(testCase.result, context)} ${markdownText(testCase.result || 'unknown')} | ${formatDuration(testCase.duration)} |\n`;
   }
   return markdown;
 }
@@ -460,7 +473,7 @@ function renderSummary(data, context = {}) {
   const counts = resultCounts(data);
   const duration = formatDuration(totalDuration(cases));
 
-  let markdown = renderCompactHeader(counts, duration);
+  let markdown = renderCompactHeader(counts, duration, context);
   markdown += renderSuiteBreakdown(cases);
 
   const failed = cases.filter((testCase) => testCase.result === 'fail');
