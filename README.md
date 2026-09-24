@@ -19,6 +19,8 @@ See what passed, what failed, what was flaky, and why, without digging through r
 
 ## Quick start with Playwright
 
+Playwright is supported today. Support for additional test frameworks is coming soon.
+
 ### 1. Install the reporter
 
 ```sh
