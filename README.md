@@ -22,6 +22,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Playwright with `playwright-tesults-reporter@^1.6.1`
 - Jest with `jest-tesults-reporter@^1.3.0`
 - Vitest with `vitest-tesults-reporter@^1.1.0`
+- Mocha with `mocha-tesults-reporter@^1.5.0`
 
 ## Quick start
 
@@ -38,6 +39,9 @@ npm install --save-dev jest-tesults-reporter@^1.3.0
 
 # Vitest
 npm install --save-dev vitest-tesults-reporter@^1.1.0
+
+# Mocha
+npm install --save-dev mocha-tesults-reporter@^1.5.0
 ```
 
 ### 2. Add it to your test configuration
@@ -85,6 +89,16 @@ export default defineConfig({
     ]
   }
 });
+```
+
+#### Mocha
+
+Create `.mocharc.json`:
+
+```json
+{
+  "reporter": "mocha-tesults-reporter"
+}
 ```
 
 ### 3. Add the action before your test step
