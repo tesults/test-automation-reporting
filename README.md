@@ -17,19 +17,34 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Failure annotations in GitHub
 - A compact view of all test results
 
-## Quick start with Playwright
+## Supported frameworks
 
-Playwright is supported today. Support for additional test frameworks is coming soon.
+- Playwright with `playwright-tesults-reporter@^1.6.1`
+- Jest with `jest-tesults-reporter@^1.3.0`
+- Vitest with `vitest-tesults-reporter@^1.1.0`
+
+## Quick start
 
 ### 1. Install the reporter
 
+Choose the reporter for your test framework:
+
 ```sh
+# Playwright
 npm install --save-dev playwright-tesults-reporter@^1.6.1
+
+# Jest
+npm install --save-dev jest-tesults-reporter@^1.3.0
+
+# Vitest
+npm install --save-dev vitest-tesults-reporter@^1.1.0
 ```
 
-### 2. Add it to your Playwright config
+### 2. Add it to your test configuration
 
 Keep any reporters you already use:
+
+#### Playwright
 
 ```js
 // playwright.config.js
@@ -41,14 +56,45 @@ module.exports = {
 };
 ```
 
+#### Jest
+
+```js
+// jest.config.js
+module.exports = {
+  testLocationInResults: true,
+  reporters: [
+    'default',
+    ['jest-tesults-reporter', {}]
+  ]
+};
+```
+
+#### Vitest
+
+```js
+// vitest.config.js
+import { defineConfig } from 'vitest/config';
+import TesultsReporter from 'vitest-tesults-reporter';
+
+export default defineConfig({
+  test: {
+    includeTaskLocation: true,
+    reporters: [
+      'default',
+      new TesultsReporter()
+    ]
+  }
+});
+```
+
 ### 3. Add the action before your test step
 
 ```yaml
 - name: Set up test automation reporting
   uses: tesults/test-automation-reporting@v1
 
-- name: Run Playwright tests
-  run: npm run test:e2e
+- name: Run tests
+  run: npm test
 ```
 
 That is it. Keep running your tests exactly as you do today.
