@@ -23,6 +23,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Jest with `jest-tesults-reporter@^1.3.0`
 - Vitest with `vitest-tesults-reporter@^1.1.0`
 - Mocha with `mocha-tesults-reporter@^1.5.0`
+- WebdriverIO with `wdio-tesults-service@^1.5.0`
 
 ## Quick start
 
@@ -42,6 +43,9 @@ npm install --save-dev vitest-tesults-reporter@^1.1.0
 
 # Mocha
 npm install --save-dev mocha-tesults-reporter@^1.5.0
+
+# WebdriverIO
+npm install --save-dev wdio-tesults-service@^1.5.0
 ```
 
 ### 2. Add it to your test configuration
@@ -99,6 +103,17 @@ Create `.mocharc.json`:
 {
   "reporter": "mocha-tesults-reporter"
 }
+```
+
+#### WebdriverIO
+
+```js
+// wdio.conf.js
+exports.config = {
+  services: [
+    ['tesults', {}]
+  ]
+};
 ```
 
 ### 3. Add the action before your test step
