@@ -24,6 +24,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Vitest with `vitest-tesults-reporter@^1.1.0`
 - Mocha with `mocha-tesults-reporter@^1.5.0`
 - WebdriverIO with `wdio-tesults-service@^1.5.0`
+- Cypress with `cypress-tesults-reporter@^1.5.0`
 
 ## Quick start
 
@@ -46,6 +47,9 @@ npm install --save-dev mocha-tesults-reporter@^1.5.0
 
 # WebdriverIO
 npm install --save-dev wdio-tesults-service@^1.5.0
+
+# Cypress
+npm install --save-dev cypress-tesults-reporter@^1.5.0
 ```
 
 ### 2. Add it to your test configuration
@@ -115,6 +119,33 @@ exports.config = {
   ]
 };
 ```
+
+#### Cypress
+
+Cypress uses the reporter's module API. Create a runner such as `cypress-run.js`:
+
+```js
+const cypress = require('cypress');
+const tesults = require('cypress-tesults-reporter');
+
+async function run() {
+  const results = await cypress.run();
+
+  if (results.failures) {
+    throw new Error(results.message);
+  }
+
+  await tesults.results(results, {});
+  process.exitCode = results.totalFailed > 0 ? 1 : 0;
+}
+
+run().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+```
+
+Run this file from your test script, for example with `node cypress-run.js`.
 
 ### 3. Add the action before your test step
 
