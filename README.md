@@ -23,6 +23,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Jest with `jest-tesults-reporter@^1.3.0`
 - Vitest with `vitest-tesults-reporter@^1.1.0`
 - Mocha with `mocha-tesults-reporter@^1.5.0`
+- Jasmine with `jasmine-tesults-reporter@^1.2.0`
 - WebdriverIO with `wdio-tesults-service@^1.5.0`
 - Cypress with `cypress-tesults-reporter@^1.5.0`
 
@@ -44,6 +45,9 @@ npm install --save-dev vitest-tesults-reporter@^1.1.0
 
 # Mocha
 npm install --save-dev mocha-tesults-reporter@^1.5.0
+
+# Jasmine
+npm install --save-dev jasmine-tesults-reporter@^1.2.0
 
 # WebdriverIO
 npm install --save-dev wdio-tesults-service@^1.5.0
@@ -107,6 +111,17 @@ Create `.mocharc.json`:
 {
   "reporter": "mocha-tesults-reporter"
 }
+```
+
+#### Jasmine
+
+Register the reporter in a Jasmine spec helper:
+
+```js
+// spec/helpers/tesults.js
+const tesultsReporter = require('jasmine-tesults-reporter');
+
+jasmine.getEnv().addReporter(tesultsReporter);
 ```
 
 #### WebdriverIO
