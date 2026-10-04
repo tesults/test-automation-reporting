@@ -26,6 +26,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Jasmine with `jasmine-tesults-reporter@^1.2.0`
 - WebdriverIO with `wdio-tesults-service@^1.5.0`
 - Cypress with `cypress-tesults-reporter@^1.5.0`
+- Nightwatch with `nightwatch-tesults@^1.3.0`
 
 ## Quick start
 
@@ -54,6 +55,9 @@ npm install --save-dev wdio-tesults-service@^1.5.0
 
 # Cypress
 npm install --save-dev cypress-tesults-reporter@^1.5.0
+
+# Nightwatch
+npm install --save-dev nightwatch-tesults@^1.3.0
 ```
 
 ### 2. Add it to your test configuration
@@ -161,6 +165,14 @@ run().catch((error) => {
 ```
 
 Run this file from your test script, for example with `node cypress-run.js`.
+
+#### Nightwatch
+
+Add the Tesults reporter to your existing Nightwatch command:
+
+```sh
+npx nightwatch tests --reporter nightwatch-tesults
+```
 
 ### 3. Add the action before your test step
 
