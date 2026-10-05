@@ -28,6 +28,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Cypress with `cypress-tesults-reporter@^1.5.0`
 - Nightwatch with `nightwatch-tesults@^1.3.0`
 - CodeceptJS with `codeceptjs-tesults@^1.3.0`
+- Postman/Newman with `newman-reporter-tesults@^1.2.1`
 
 ## Quick start
 
@@ -62,6 +63,9 @@ npm install --save-dev nightwatch-tesults@^1.3.0
 
 # CodeceptJS
 npm install --save-dev codeceptjs-tesults@^1.3.0
+
+# Postman/Newman
+npm install --save-dev newman-reporter-tesults@^1.2.1
 ```
 
 ### 2. Add it to your test configuration
@@ -192,6 +196,14 @@ exports.config = {
     }
   }
 };
+```
+
+#### Postman/Newman
+
+Run the collection with the Tesults Newman reporter:
+
+```sh
+npx newman run your_collection.json -r tesults
 ```
 
 ### 3. Add the action before your test step
