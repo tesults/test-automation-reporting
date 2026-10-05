@@ -26,6 +26,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Jasmine with `jasmine-tesults-reporter@^1.2.0`
 - WebdriverIO with `wdio-tesults-service@^1.5.0`
 - Cypress with `cypress-tesults-reporter@^1.5.0`
+- TestCafe with `testcafe-reporter-tesults@^1.3.0`
 - Nightwatch with `nightwatch-tesults@^1.3.0`
 - CodeceptJS with `codeceptjs-tesults@^1.3.0`
 - Postman/Newman with `newman-reporter-tesults@^1.2.1`
@@ -57,6 +58,9 @@ npm install --save-dev wdio-tesults-service@^1.5.0
 
 # Cypress
 npm install --save-dev cypress-tesults-reporter@^1.5.0
+
+# TestCafe
+npm install --save-dev testcafe-reporter-tesults@^1.3.0
 
 # Nightwatch
 npm install --save-dev nightwatch-tesults@^1.3.0
@@ -173,6 +177,14 @@ run().catch((error) => {
 ```
 
 Run this file from your test script, for example with `node cypress-run.js`.
+
+#### TestCafe
+
+Add the Tesults reporter to your existing TestCafe command:
+
+```sh
+npx testcafe chrome:headless 'path/to/test/file.js' --reporter tesults
+```
 
 #### Nightwatch
 
