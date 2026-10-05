@@ -19,6 +19,8 @@ See what passed, what failed, what was flaky, and why, without digging through r
 
 ## Supported frameworks
 
+### Direct integrations
+
 - EXP with `exp-tf@^1.2.0`
 - Playwright with `playwright-tesults-reporter@^1.6.1`
 - Jest with `jest-tesults-reporter@^1.3.0`
@@ -31,6 +33,13 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Nightwatch with `nightwatch-tesults@^1.3.0`
 - CodeceptJS with `codeceptjs-tesults@^1.3.0`
 - Postman/Newman with `newman-reporter-tesults@^1.2.1`
+
+### Supported through existing integrations
+
+- Waffle through `mocha-tesults-reporter@^1.5.0`
+- Protractor through `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0`
+- Selenium through the supported test runner or framework used by the project
+- Cypress through `mocha-tesults-reporter@^1.5.0` as an alternative to the recommended Cypress integration
 
 ## Quick start
 
@@ -152,6 +161,53 @@ const tesultsReporter = require('jasmine-tesults-reporter');
 jasmine.getEnv().addReporter(tesultsReporter);
 ```
 
+#### Waffle
+
+Waffle tests use Mocha. Install the Mocha reporter shown above and add it to your existing Waffle test command:
+
+```sh
+NODE_ENV=test npx mocha --reporter mocha-tesults-reporter
+```
+
+See the [Tesults Waffle documentation](https://www.tesults.com/docs/waffle) for additional Waffle configuration.
+
+#### Protractor
+
+Protractor can use either the Mocha or Jasmine integration.
+
+For Mocha, install the Mocha reporter shown above and reference it from `mochaOpts`:
+
+```js
+// conf.js
+const tesultsReporter = require('mocha-tesults-reporter');
+
+exports.config = {
+  framework: 'mocha',
+  mochaOpts: {
+    reporter: tesultsReporter
+  }
+};
+```
+
+For Jasmine, install the Jasmine reporter shown above and register it during preparation:
+
+```js
+// conf.js
+exports.config = {
+  framework: 'jasmine',
+  onPrepare: function () {
+    const tesultsReporter = require('jasmine-tesults-reporter');
+    jasmine.getEnv().addReporter(tesultsReporter);
+  }
+};
+```
+
+Keep the rest of your existing Protractor configuration. See the [Tesults Protractor documentation](https://www.tesults.com/docs/protractor) for framework-specific options.
+
+#### Selenium
+
+Selenium does not require a separate Tesults reporter. Configure the supported runner or test framework that executes your Selenium tests—for example WebdriverIO, Nightwatch, CodeceptJS, Mocha, Jasmine, or Jest—using its instructions above.
+
 #### WebdriverIO
 
 ```js
@@ -189,6 +245,8 @@ run().catch((error) => {
 ```
 
 Run this file from your test script, for example with `node cypress-run.js`.
+
+Projects already using Cypress through Mocha can use `mocha-tesults-reporter` instead. The dedicated Cypress integration is recommended for Cypress-specific results and captured files.
 
 #### TestCafe
 
