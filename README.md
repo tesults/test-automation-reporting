@@ -19,6 +19,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 
 ## Supported frameworks
 
+- EXP with `exp-tf@^1.2.0`
 - Playwright with `playwright-tesults-reporter@^1.6.1`
 - Jest with `jest-tesults-reporter@^1.3.0`
 - Vitest with `vitest-tesults-reporter@^1.1.0`
@@ -38,6 +39,9 @@ See what passed, what failed, what was flaky, and why, without digging through r
 Choose the reporter for your test framework:
 
 ```sh
+# EXP
+npm install --save-dev exp-tf@^1.2.0
+
 # Playwright
 npm install --save-dev playwright-tesults-reporter@^1.6.1
 
@@ -75,6 +79,14 @@ npm install --save-dev newman-reporter-tesults@^1.2.1
 ### 2. Add it to your test configuration
 
 Keep any reporters you already use:
+
+#### EXP
+
+Run EXP with the absolute path to your tests:
+
+```sh
+npx exp dir=/full/path/to/tests
+```
 
 #### Playwright
 
