@@ -27,6 +27,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - WebdriverIO with `wdio-tesults-service@^1.5.0`
 - Cypress with `cypress-tesults-reporter@^1.5.0`
 - Nightwatch with `nightwatch-tesults@^1.3.0`
+- CodeceptJS with `codeceptjs-tesults@^1.3.0`
 
 ## Quick start
 
@@ -58,6 +59,9 @@ npm install --save-dev cypress-tesults-reporter@^1.5.0
 
 # Nightwatch
 npm install --save-dev nightwatch-tesults@^1.3.0
+
+# CodeceptJS
+npm install --save-dev codeceptjs-tesults@^1.3.0
 ```
 
 ### 2. Add it to your test configuration
@@ -172,6 +176,22 @@ Add the Tesults reporter to your existing Nightwatch command:
 
 ```sh
 npx nightwatch tests --reporter nightwatch-tesults
+```
+
+#### CodeceptJS
+
+Enable the Tesults plugin without a target token:
+
+```js
+// codecept.conf.js
+exports.config = {
+  plugins: {
+    tesults: {
+      require: 'codeceptjs-tesults',
+      enabled: true
+    }
+  }
+};
 ```
 
 ### 3. Add the action before your test step
