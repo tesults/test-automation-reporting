@@ -33,6 +33,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Nightwatch with `nightwatch-tesults@^1.3.0`
 - CodeceptJS with `codeceptjs-tesults@^1.3.0`
 - Postman/Newman with `newman-reporter-tesults@^1.2.1`
+- pytest with `pytest-tesults>=1.9.0`
 
 ### Supported through existing integrations
 
@@ -40,6 +41,8 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Protractor through `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0`
 - Selenium through the supported test runner or framework used by the project
 - Cypress through `mocha-tesults-reporter@^1.5.0` as an alternative to the recommended Cypress integration
+- Playwright for Python through its official pytest plugin and `pytest-tesults>=1.9.0`
+- ROS 2 Python package tests and `launch_testing` through `pytest-tesults>=1.9.0` when run with pytest
 
 ## Quick start
 
@@ -83,6 +86,9 @@ npm install --save-dev codeceptjs-tesults@^1.3.0
 
 # Postman/Newman
 npm install --save-dev newman-reporter-tesults@^1.2.1
+
+# pytest
+python -m pip install "pytest-tesults>=1.9.0"
 ```
 
 ### 2. Add it to your test configuration
@@ -287,6 +293,51 @@ Run the collection with the Tesults Newman reporter:
 ```sh
 npx newman run your_collection.json -r tesults
 ```
+
+#### pytest
+
+The pytest plugin registers itself when installed. Run pytest normally; no
+Tesults target token is required:
+
+```sh
+python -m pytest
+```
+
+Parallel runs with `pytest-xdist` are also supported:
+
+```sh
+python -m pip install pytest-xdist
+python -m pytest -n 2
+```
+
+#### Playwright for Python
+
+Playwright's official Python plugin uses pytest, so install the pytest Tesults
+plugin alongside it:
+
+```sh
+python -m pip install pytest-playwright "pytest-tesults>=1.9.0"
+python -m playwright install
+python -m pytest
+```
+
+See the [Tesults Playwright documentation](https://www.tesults.com/docs/playwright)
+for the framework-specific setup.
+
+#### ROS 2 Python and launch_testing
+
+ROS 2 Python package tests and `launch_testing` use pytest. Install the pytest
+plugin in the ROS 2 environment and select pytest when running the package:
+
+```sh
+python -m pip install "pytest-tesults>=1.9.0"
+colcon test --packages-select your_python_package --python-testing pytest
+```
+
+For workspaces containing multiple independently tested packages, use a
+separate action-enabled job for each package-scoped test invocation so each job
+produces its own report. See the [Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2)
+for additional ROS 2 setup details.
 
 ### 3. Add the action before your test step
 
