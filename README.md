@@ -35,6 +35,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Postman/Newman with `newman-reporter-tesults@^1.2.1`
 - pytest with `pytest-tesults>=1.9.0`
 - Robot Framework with `robot-tesults>=1.3.0`
+- RSpec with `rspec_tesults_formatter` 1.2.0 or later
 
 ### Supported through existing integrations
 
@@ -93,6 +94,9 @@ python -m pip install "pytest-tesults>=1.9.0"
 
 # Robot Framework
 python -m pip install "robot-tesults>=1.3.0"
+
+# RSpec
+gem install rspec_tesults_formatter -v ">= 1.2.0"
 ```
 
 ### 2. Add it to your test configuration
@@ -332,6 +336,18 @@ python -m robot --listener TesultsListener:files=path/to/files tests
 
 On Windows, use Robot Framework's `;` listener-argument separator when a value
 contains a drive-letter path.
+
+#### RSpec
+
+Run RSpec with the Tesults formatter loaded; no Tesults target token is
+required:
+
+```sh
+rspec --require rspec_tesults_formatter --format TesultsFormatter spec
+```
+
+If the formatter is already loaded from `.rspec`, keep your existing command
+and configuration. The action sets `TESULTS_OUTPUT_FILE` automatically.
 
 #### Playwright for Python
 
