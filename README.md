@@ -36,6 +36,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - pytest with `pytest-tesults>=1.9.0`
 - Robot Framework with `robot-tesults>=1.3.0`
 - RSpec with `rspec_tesults_formatter` 1.2.0 or later
+- JUnit 5 with `com.tesults.junit5:tesults-junit5:1.3.0` or later
 
 ### Supported through existing integrations
 
@@ -44,6 +45,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Selenium through the supported test runner or framework used by the project
 - Cypress through `mocha-tesults-reporter@^1.5.0` as an alternative to the recommended Cypress integration
 - Playwright for Python through its official pytest plugin and `pytest-tesults>=1.9.0`
+- JUnit 4 through JUnit Vintage and `com.tesults.junit5:tesults-junit5:1.3.0` or later
 - ROS 2 Python package tests and `launch_testing` through `pytest-tesults>=1.9.0` when run with pytest
 
 ## Quick start
@@ -97,6 +99,25 @@ python -m pip install "robot-tesults>=1.3.0"
 
 # RSpec
 gem install rspec_tesults_formatter -v ">= 1.2.0"
+```
+
+For JUnit 5 with Gradle, add the published listener to the test dependencies:
+
+```groovy
+dependencies {
+    testImplementation 'com.tesults.junit5:tesults-junit5:1.3.0'
+}
+```
+
+For Maven:
+
+```xml
+<dependency>
+  <groupId>com.tesults.junit5</groupId>
+  <artifactId>tesults-junit5</artifactId>
+  <version>1.3.0</version>
+  <scope>test</scope>
+</dependency>
 ```
 
 ### 2. Add it to your test configuration
@@ -348,6 +369,40 @@ rspec --require rspec_tesults_formatter --format TesultsFormatter spec
 
 If the formatter is already loaded from `.rspec`, keep your existing command
 and configuration. The action sets `TESULTS_OUTPUT_FILE` automatically.
+
+#### JUnit 5
+
+Enable JUnit Platform and automatic listener detection. No Tesults target token
+is required:
+
+```groovy
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+}
+```
+
+For Maven Surefire, set the same
+`junit.jupiter.extensions.autodetection.enabled=true` configuration parameter.
+Keep any existing Tesults options; if `tesultsTarget` is also configured, the
+listener writes the GitHub report and continues uploading the run to Tesults.
+
+#### JUnit 4
+
+Run existing JUnit 4 tests through JUnit Vintage, then use the JUnit 5 listener
+configuration above. For the versions in the Tesults JUnit 4 documentation:
+
+```groovy
+dependencies {
+    testImplementation 'junit:junit:4.13'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.6.2'
+    testImplementation 'com.tesults.junit5:tesults-junit5:1.3.0'
+}
+```
+
+JUnit 4 test classes should be in a package so Vintage supplies useful suite
+names. See the [Tesults JUnit 4 documentation](https://www.tesults.com/docs/junit4)
+for the migration route and additional configuration.
 
 #### Playwright for Python
 
