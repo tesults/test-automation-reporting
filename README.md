@@ -34,6 +34,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - CodeceptJS with `codeceptjs-tesults@^1.3.0`
 - Postman/Newman with `newman-reporter-tesults@^1.2.1`
 - pytest with `pytest-tesults>=1.9.0`
+- Robot Framework with `robot-tesults>=1.3.0`
 
 ### Supported through existing integrations
 
@@ -89,6 +90,9 @@ npm install --save-dev newman-reporter-tesults@^1.2.1
 
 # pytest
 python -m pip install "pytest-tesults>=1.9.0"
+
+# Robot Framework
+python -m pip install "robot-tesults>=1.3.0"
 ```
 
 ### 2. Add it to your test configuration
@@ -309,6 +313,25 @@ Parallel runs with `pytest-xdist` are also supported:
 python -m pip install pytest-xdist
 python -m pytest -n 2
 ```
+
+#### Robot Framework
+
+Load the Tesults listener when running Robot Framework; no Tesults target token
+is required:
+
+```sh
+python -m robot --listener TesultsListener tests
+```
+
+Keep any existing listener arguments. For example, captured files can continue
+to use the reporter's `files` option:
+
+```sh
+python -m robot --listener TesultsListener:files=path/to/files tests
+```
+
+On Windows, use Robot Framework's `;` listener-argument separator when a value
+contains a drive-letter path.
 
 #### Playwright for Python
 
