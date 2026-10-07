@@ -46,6 +46,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Selenium through the supported test runner or framework used by the project
 - Cypress through `mocha-tesults-reporter@^1.5.0` as an alternative to the recommended Cypress integration
 - Playwright for Python through its official pytest plugin and `pytest-tesults>=1.9.0`
+- Playwright for Java through JUnit 5 and `com.tesults.junit5:tesults-junit5:1.3.0` or later
 - JUnit 4 through JUnit Vintage and `com.tesults.junit5:tesults-junit5:1.3.0` or later
 - ROS 2 Python package tests and `launch_testing` through `pytest-tesults>=1.9.0` when run with pytest
 
@@ -456,6 +457,25 @@ python -m pytest
 
 See the [Tesults Playwright documentation](https://www.tesults.com/docs/playwright)
 for the framework-specific setup.
+
+#### Playwright for Java
+
+Playwright's Java integration uses JUnit 5. Add the Tesults JUnit 5 dependency
+shown above, enable JUnit Platform and automatic listener detection, and run the
+existing Playwright tests normally. No Tesults target token is required:
+
+```groovy
+test {
+    useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+}
+```
+
+For Maven Surefire, use the JUnit 5 dependency and configuration parameter
+shown above, then run `mvn test`. The action supplies `TESULTS_OUTPUT_FILE` to
+the JUnit 5 listener automatically. See the
+[Tesults Playwright documentation](https://www.tesults.com/docs/playwright) for
+the framework-specific setup.
 
 #### ROS 2 Python and launch_testing
 
