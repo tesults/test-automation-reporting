@@ -37,6 +37,7 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Robot Framework with `robot-tesults>=1.3.0`
 - RSpec with `rspec_tesults_formatter` 1.2.0 or later
 - JUnit 5 with `com.tesults.junit5:tesults-junit5:1.3.0` or later
+- TestNG with `com.tesults.testng:tesults-testng:1.3.0` or later
 
 ### Supported through existing integrations
 
@@ -115,6 +116,25 @@ For Maven:
 <dependency>
   <groupId>com.tesults.junit5</groupId>
   <artifactId>tesults-junit5</artifactId>
+  <version>1.3.0</version>
+  <scope>test</scope>
+</dependency>
+```
+
+For TestNG with Gradle, add the published listener to the test dependencies:
+
+```groovy
+dependencies {
+    testImplementation 'com.tesults.testng:tesults-testng:1.3.0'
+}
+```
+
+For Maven:
+
+```xml
+<dependency>
+  <groupId>com.tesults.testng</groupId>
+  <artifactId>tesults-testng</artifactId>
   <version>1.3.0</version>
   <scope>test</scope>
 </dependency>
@@ -386,6 +406,25 @@ For Maven Surefire, set the same
 `junit.jupiter.extensions.autodetection.enabled=true` configuration parameter.
 Keep any existing Tesults options; if `tesultsTarget` is also configured, the
 listener writes the GitHub report and continues uploading the run to Tesults.
+
+#### TestNG
+
+The listener registers itself automatically. No Tesults target token is
+required. For Gradle, keep your existing TestNG version and enable TestNG as
+usual:
+
+```groovy
+test {
+    useTestNG()
+}
+```
+
+For Maven Surefire, run the existing TestNG suite normally with `mvn test`; no
+additional listener configuration is required. Keep any existing Tesults
+options. If `tesultsTarget` is also configured, the listener writes the GitHub
+report and continues uploading results to Tesults using the existing behavior.
+See the [Tesults TestNG documentation](https://www.tesults.com/docs/testng) for
+the complete TestNG configuration options.
 
 #### JUnit 4
 
