@@ -19,36 +19,36 @@ See what passed, what failed, what was flaky, and why, without digging through r
 
 ## Supported frameworks
 
-### Direct integrations
+Choose your framework below. Some frameworks use the Tesults integration for
+their underlying test runner; they are fully supported by the action in the
+same way as frameworks with a dedicated reporter.
 
-- EXP with `exp-tf@^1.2.0`
-- Playwright with `playwright-tesults-reporter@^1.6.1`
-- Jest with `jest-tesults-reporter@^1.3.0`
-- Vitest with `vitest-tesults-reporter@^1.1.0`
-- Mocha with `mocha-tesults-reporter@^1.5.0`
-- Jasmine with `jasmine-tesults-reporter@^1.2.0`
-- WebdriverIO with `wdio-tesults-service@^1.5.0`
-- Cypress with `cypress-tesults-reporter@^1.5.0`
-- TestCafe with `testcafe-reporter-tesults@^1.3.0`
-- Nightwatch with `nightwatch-tesults@^1.3.0`
-- CodeceptJS with `codeceptjs-tesults@^1.3.0`
-- Postman/Newman with `newman-reporter-tesults@^1.2.1`
-- pytest with `pytest-tesults>=1.9.0`
-- Robot Framework with `robot-tesults>=1.3.0`
-- RSpec with `rspec_tesults_formatter` 1.2.0 or later
-- JUnit 5 with `com.tesults.junit5:tesults-junit5:1.3.0` or later
-- TestNG with `com.tesults.testng:tesults-testng:1.3.0` or later
-
-### Supported through existing integrations
-
-- Waffle through `mocha-tesults-reporter@^1.5.0`
-- Protractor through `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0`
-- Selenium through the supported test runner or framework used by the project
-- Cypress through `mocha-tesults-reporter@^1.5.0` as an alternative to the recommended Cypress integration
-- Playwright for Python through its official pytest plugin and `pytest-tesults>=1.9.0`
-- Playwright for Java through JUnit 5 and `com.tesults.junit5:tesults-junit5:1.3.0` or later
-- JUnit 4 through JUnit Vintage and `com.tesults.junit5:tesults-junit5:1.3.0` or later
-- ROS 2 Python package tests and `launch_testing` through `pytest-tesults>=1.9.0` when run with pytest
+| Framework | Integration and minimum version | Setup |
+| --- | --- | --- |
+| CodeceptJS | `codeceptjs-tesults@^1.3.0` | [Instructions](#codeceptjs) |
+| Cypress | `cypress-tesults-reporter@^1.5.0` (recommended) or `mocha-tesults-reporter@^1.5.0` | [Instructions](#cypress) |
+| EXP | `exp-tf@^1.2.0` | [Instructions](#exp) |
+| Jasmine | `jasmine-tesults-reporter@^1.2.0` | [Instructions](#jasmine) |
+| Jest | `jest-tesults-reporter@^1.3.0` | [Instructions](#jest) |
+| JUnit 4 | JUnit Vintage with `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#junit-4) |
+| JUnit 5 | `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#junit-5) |
+| Mocha | `mocha-tesults-reporter@^1.5.0` | [Instructions](#mocha) |
+| Nightwatch | `nightwatch-tesults@^1.3.0` | [Instructions](#nightwatch) |
+| Playwright (Node.js) | `playwright-tesults-reporter@^1.6.1` | [Instructions](#playwright) |
+| Playwright (Python) | `pytest-playwright` with `pytest-tesults>=1.9.0` | [Instructions](#playwright-for-python) |
+| Playwright (Java) | JUnit 5 with `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#playwright-for-java) |
+| Postman/Newman | `newman-reporter-tesults@^1.2.1` | [Instructions](#postmannewman) |
+| Protractor | `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0` | [Instructions](#protractor) |
+| pytest | `pytest-tesults>=1.9.0` | [Instructions](#pytest) |
+| Robot Framework | `robot-tesults>=1.3.0` | [Instructions](#robot-framework) |
+| ROS 2 Python and `launch_testing` | `pytest-tesults>=1.9.0` | [Instructions](#ros-2-python-and-launch_testing) |
+| RSpec | `rspec_tesults_formatter` 1.2.0 or later | [Instructions](#rspec) |
+| Selenium | The supported test runner or framework used by the project | [Instructions](#selenium) |
+| TestCafe | `testcafe-reporter-tesults@^1.3.0` | [Instructions](#testcafe) |
+| TestNG | `com.tesults.testng:tesults-testng:1.3.0` or later | [Instructions](#testng) |
+| Vitest | `vitest-tesults-reporter@^1.1.0` | [Instructions](#vitest) |
+| Waffle | `mocha-tesults-reporter@^1.5.0` | [Instructions](#waffle) |
+| WebdriverIO | `wdio-tesults-service@^1.5.0` | [Instructions](#webdriverio) |
 
 ## Quick start
 
