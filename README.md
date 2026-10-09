@@ -56,6 +56,7 @@ same way as frameworks with a dedicated reporter.
 | Vitest | `vitest-tesults-reporter@^1.1.0` | [Instructions](#vitest) |
 | Waffle | `mocha-tesults-reporter@^1.5.0` | [Instructions](#waffle) |
 | WebdriverIO | `wdio-tesults-service@^1.5.0` | [Instructions](#webdriverio) |
+| XCTest / XCUITest | `tesults-xctest-observer` 1.0.7 or later | [Instructions](#xctest-and-xcuitest) |
 
 ## Quick start
 
@@ -115,6 +116,10 @@ gem install rspec_tesults_formatter -v ">= 1.2.0"
 # Rust, cargo-nextest, rstest, and ROS 2 Rust
 cargo add --dev tesults-test@1.1.0
 ```
+
+For XCTest and XCUITest, add the Swift package
+`https://github.com/tesults/tesults-xctest-observer` to the test target in
+Xcode and select version 1.0.7 or later.
 
 For GoogleTest and ROS 2 C++ packages, add the C++ library and GoogleTest
 listener with CMake FetchContent. Define the GoogleTest target first, then add:
@@ -661,6 +666,29 @@ Use either `tesults-test` for rich Rust results or `colcon-tesults` for basic
 workspace-wide JUnit reporting in a given action-enabled job, not both. See the
 [Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2) for additional
 ROS 2 setup details.
+
+#### XCTest and XCUITest
+
+Add `tesults-xctest-observer` 1.0.7 or later to the XCTest or XCUITest target
+using Swift Package Manager, then register the observer when the tests start:
+
+```swift
+import XCTest
+import tesults_xctest_observer
+
+XCTestObservationCenter.shared.addTestObserver(TesultsXCTestObserver())
+```
+
+If the project already registers the observer through its test target's
+`NSPrincipalClass`, keep that startup setup and omit the target token as shown
+above. Run the suite normally with Xcode or `xcodebuild test`; the action
+supplies `TESULTS_OUTPUT_FILE` automatically.
+
+To keep uploading the same run directly to Tesults as well, retain the
+existing `target` argument. Version 1.0.7 writes the action report and
+continues the existing upload in the same test run. See the
+[Tesults XCTest documentation](https://www.tesults.com/docs/xctest) for test
+startup configuration and attachment APIs.
 
 ### 3. Add the action before your test step
 
