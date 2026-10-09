@@ -3,6 +3,10 @@ description: GitHub-native test reports with failures, logs, retries, steps, scr
 author: Tesults
 
 inputs:
+  junit-xml:
+    description: Path or glob for JUnit XML result files, relative to the workspace. Multiple patterns may be supplied on separate lines.
+    required: false
+    default: ""
   store-attachments:
     description: Store screenshots, logs, and other captured test files as a GitHub Actions artifact for 1 day.
     required: false

@@ -24,4 +24,4 @@ appendCommandFile(process.env.GITHUB_STATE, 'tesults_output_file', outputFile);
 appendCommandFile(process.env.GITHUB_STATE, 'tesults_started_at', Date.now());
 
 console.log('Test automation reporting is ready.');
-console.log('Run your tests normally. The configured framework reporter will write results for this action.');
+console.log('Run your tests normally. The configured reporter or JUnit XML logger will provide results for this action.');

@@ -58,6 +58,7 @@ same way as frameworks with a dedicated reporter.
 | Waffle | `mocha-tesults-reporter@^1.5.0` | [Instructions](#waffle) |
 | WebdriverIO | `wdio-tesults-service@^1.5.0` | [Instructions](#webdriverio) |
 | XCTest / XCUITest | `tesults-xctest-observer` 1.0.7 or later | [Instructions](#xctest-and-xcuitest) |
+| xUnit | `JunitXml.TestLogger` with JUnit XML output | [Instructions](#xunit) |
 
 ## Quick start
 
@@ -113,6 +114,9 @@ python -m pip install "robot-tesults>=1.3.0"
 
 # RSpec
 gem install rspec_tesults_formatter -v ">= 1.2.0"
+
+# xUnit
+dotnet add package JunitXml.TestLogger
 
 # Rust, cargo-nextest, rstest, and ROS 2 Rust
 cargo add --dev tesults-test@1.1.0
@@ -372,6 +376,20 @@ directly to Tesults, keep it configured. The direct upload continues normally,
 while this action independently reads Android's local XML results. See the
 [Tesults Espresso documentation](https://www.tesults.com/docs/espresso) for
 the existing upload configuration.
+
+#### xUnit
+
+Install `JunitXml.TestLogger` as shown above, then generate JUnit XML when the
+xUnit tests run:
+
+```sh
+dotnet test --logger:junit
+```
+
+No Tesults package, account, target token, or changes to test code are required.
+Configure the action with the generated XML path as shown below. This follows
+the output format in the [Tesults xUnit documentation](https://www.tesults.com/docs/xunit);
+native xUnit XML is not accepted by the `junit-xml` input.
 
 #### TestCafe
 
@@ -724,6 +742,33 @@ startup configuration and attachment APIs.
 That is it. Keep running your tests exactly as you do today.
 
 No Tesults account or token is required.
+
+For xUnit, or another tool that produces standard JUnit XML, specify the result
+files explicitly. Paths and glob patterns are relative to the repository
+workspace:
+
+```yaml
+- name: Set up test automation reporting
+  uses: tesults/test-automation-reporting@v1
+  with:
+    junit-xml: "**/TestResults/**/*.xml"
+
+- name: Run xUnit tests
+  run: dotnet test --logger:junit
+```
+
+The action only reads matching XML files created during the current action run.
+Multiple patterns can be provided on separate lines:
+
+```yaml
+with:
+  junit-xml: |
+    backend/TestResults/**/*.xml
+    integration/TestResults/**/*.xml
+```
+
+Reporter-generated Tesults JSON always takes priority over `junit-xml`, so this
+input does not alter existing reporter behavior.
 
 ## Screenshots and other files
 

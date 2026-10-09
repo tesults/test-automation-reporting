@@ -10,7 +10,7 @@ const {
   resultCounts,
   testCasesFrom
 } = require('./report');
-const { androidJUnitData } = require('./junit');
+const { androidJUnitData, configuredJUnitData } = require('./junit');
 
 function escapeMessage(value) {
   return String(value)
@@ -215,14 +215,30 @@ function run() {
       return;
     }
   } else {
-    data = androidJUnitData(
-      process.env.GITHUB_WORKSPACE,
-      process.env.STATE_tesults_started_at
-    );
-    if (data) {
-      console.log('Using Android instrumentation JUnit XML results.');
+    const junitInput = String(process.env['INPUT_JUNIT-XML'] || '').trim();
+    if (junitInput) {
+      data = configuredJUnitData(
+        process.env.GITHUB_WORKSPACE,
+        junitInput,
+        process.env.STATE_tesults_started_at
+      );
+      if (data) {
+        console.log('Using configured JUnit XML results.');
+      }
     } else {
-      const message = 'No test results were produced. Make sure a supported framework reporter is installed and configured, or run Espresso with an Android Gradle test task, and ensure this action appears before the test step.';
+      data = androidJUnitData(
+        process.env.GITHUB_WORKSPACE,
+        process.env.STATE_tesults_started_at
+      );
+      if (data) {
+        console.log('Using Android instrumentation JUnit XML results.');
+      }
+    }
+
+    if (!data) {
+      const message = junitInput
+        ? `No current-run JUnit XML test results matched: ${junitInput}`
+        : 'No test results were produced. Make sure a supported framework reporter is installed and configured, or run Espresso with an Android Gradle test task, and ensure this action appears before the test step.';
       emitError(message);
       appendSummary(`# Test Automation Reporting\n\n${message}\n`);
       process.exitCode = 1;
