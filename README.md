@@ -28,6 +28,7 @@ same way as frameworks with a dedicated reporter.
 | CodeceptJS | `codeceptjs-tesults@^1.3.0` | [Instructions](#codeceptjs) |
 | Cypress | `cypress-tesults-reporter@^1.5.0` (recommended) or `mocha-tesults-reporter@^1.5.0` | [Instructions](#cypress) |
 | EXP | `exp-tf@^1.2.0` | [Instructions](#exp) |
+| GoogleTest | `tesults-gtest` v1.0.3 or later with `tesults/cpp` v1.0.3 or later | [Instructions](#googletest) |
 | Jasmine | `jasmine-tesults-reporter@^1.2.0` | [Instructions](#jasmine) |
 | Jest | `jest-tesults-reporter@^1.3.0` | [Instructions](#jest) |
 | JUnit 4 | JUnit Vintage with `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#junit-4) |
@@ -41,6 +42,7 @@ same way as frameworks with a dedicated reporter.
 | Protractor | `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0` | [Instructions](#protractor) |
 | pytest | `pytest-tesults>=1.9.0` | [Instructions](#pytest) |
 | Robot Framework | `robot-tesults>=1.3.0` | [Instructions](#robot-framework) |
+| ROS 2 C++ (GoogleTest) | `tesults-gtest` v1.0.3 or later with `tesults/cpp` v1.0.3 or later | [Instructions](#ros-2-cpp-googletest) |
 | ROS 2 Python and `launch_testing` | `pytest-tesults>=1.9.0` | [Instructions](#ros-2-python-and-launch_testing) |
 | RSpec | `rspec_tesults_formatter` 1.2.0 or later | [Instructions](#rspec) |
 | Selenium | The supported test runner or framework used by the project | [Instructions](#selenium) |
@@ -102,6 +104,36 @@ python -m pip install "robot-tesults>=1.3.0"
 # RSpec
 gem install rspec_tesults_formatter -v ">= 1.2.0"
 ```
+
+For GoogleTest and ROS 2 C++ packages, add the C++ library and GoogleTest
+listener with CMake FetchContent. Define the GoogleTest target first, then add:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+    tesults
+    GIT_REPOSITORY https://github.com/tesults/cpp.git
+    GIT_TAG        v1.0.3
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(tesults)
+
+FetchContent_Declare(
+    tesults_gtest
+    GIT_REPOSITORY https://github.com/tesults/tesults-gtest.git
+    GIT_TAG        v1.0.3
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(tesults_gtest)
+
+target_link_libraries(your_tests PRIVATE
+    tesults::tesults
+    tesults_gtest::tesults_gtest
+)
+```
+
+The underlying C++ library requires libcurl and OpenSSL.
 
 For JUnit 5 with Gradle, add the published listener to the test dependencies:
 
@@ -391,6 +423,21 @@ rspec --require rspec_tesults_formatter --format TesultsFormatter spec
 If the formatter is already loaded from `.rspec`, keep your existing command
 and configuration. The action sets `TESULTS_OUTPUT_FILE` automatically.
 
+#### GoogleTest
+
+The listener registers itself automatically when the action supplies
+`TESULTS_OUTPUT_FILE`; no target token or custom `main()` is required. Link the
+test executable as shown above and run it normally, directly or through CTest:
+
+```sh
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+Multiple GoogleTest executables can use the same action-provided output file;
+their cases are merged safely. Keep any existing `TESULTS_TARGET` setting if
+you also want to upload the run directly to Tesults.
+
 #### JUnit 5
 
 Enable JUnit Platform and automatic listener detection. No Tesults target token
@@ -491,6 +538,32 @@ For workspaces containing multiple independently tested packages, use a
 separate action-enabled job for each package-scoped test invocation so each job
 produces its own report. See the [Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2)
 for additional ROS 2 setup details.
+
+#### ROS 2 C++ (GoogleTest)
+
+ROS 2 C++ tests created with `ament_add_gtest()` use GoogleTest's supplied
+`main()`, so the listener's automatic environment registration is the right
+integration path. Add the two FetchContent declarations shown above, then link
+the generated test target:
+
+```cmake
+ament_add_gtest(your_tests test/your_tests.cpp)
+target_link_libraries(your_tests PRIVATE
+    tesults::tesults
+    tesults_gtest::tesults_gtest
+)
+```
+
+Run the package tests normally after the action step:
+
+```sh
+colcon test --packages-select your_cpp_package
+```
+
+No Tesults target token is required. The action-provided output file also
+merges results from multiple GoogleTest executables in the package. See the
+[Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2) for additional
+ROS 2 setup details.
 
 ### 3. Add the action before your test step
 
