@@ -163,6 +163,25 @@ assert.ok(multiSuiteSummary.includes('<details><summary>Suite breakdown (2)</sum
 assert.ok(multiSuiteSummary.includes('| checkout | **1** | 1 | 0 | 0 | 0 |'));
 assert.ok(multiSuiteSummary.includes('| auth | **1** | 0 | 1 | 0 | 0 |'));
 
+const summaryOnly = renderSummary(multiSuite, {
+  reportTitle: 'Integration tests',
+  reportDetail: 'summary'
+});
+assert.ok(summaryOnly.startsWith('## Integration tests · 2 tests'));
+assert.ok(summaryOnly.includes('Suite breakdown (2)'));
+assert.ok(!summaryOnly.includes('### Failures'));
+assert.ok(!summaryOnly.includes('All test results'));
+
+const failuresOnly = renderSummary(multiSuite, { reportDetail: 'failures' });
+assert.ok(failuresOnly.includes('### Failures'));
+assert.ok(!failuresOnly.includes('All test results'));
+
+const alwaysCollapsed = renderSummary(multiSuite, { collapsed: 'always' });
+assert.ok(alwaysCollapsed.includes('<details><summary>Test details</summary>'));
+const neverCollapsed = renderSummary(multiSuite, { collapsed: 'never' });
+assert.ok(neverCollapsed.includes('<details open><summary>Suite breakdown (2)</summary>'));
+assert.ok(neverCollapsed.includes('<details open><summary>All test results</summary>'));
+
 const allPassing = {
   results: {
     cases: [

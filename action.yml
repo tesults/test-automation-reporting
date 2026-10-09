@@ -3,14 +3,86 @@ description: GitHub-native test reports with failures, logs, retries, steps, scr
 author: Tesults
 
 inputs:
+  mode:
+    description: Use setup before tests (default), or finalize after tests to make outputs available to later steps.
+    required: false
+    default: "setup"
   junit-xml:
-    description: Path or glob for JUnit XML result files, relative to the workspace. Multiple patterns may be supplied on separate lines.
+    description: Path or glob for JUnit XML result files, relative to working-directory. Multiple patterns may be supplied on separate lines.
     required: false
     default: ""
   store-attachments:
     description: Store screenshots, logs, and other captured test files as a GitHub Actions artifact for 1 day.
     required: false
     default: "false"
+  report-title:
+    description: Heading used for the job summary.
+    required: false
+    default: "Test results"
+  use-actions-summary:
+    description: Write the report to the GitHub Actions job summary.
+    required: false
+    default: "true"
+  report-detail:
+    description: Detail shown in the job summary. One of all, failures, or summary.
+    required: false
+    default: "all"
+  collapsed:
+    description: Detail expansion behavior. One of auto, always, or never.
+    required: false
+    default: "auto"
+  max-annotations:
+    description: Maximum number of GitHub failure annotations and Check Run annotations, from 0 to 50.
+    required: false
+    default: "10"
+  fail-on-test-failure:
+    description: Fail the action when the report contains failed tests.
+    required: false
+    default: "false"
+  fail-on-empty:
+    description: Fail the action when no current-run results are found.
+    required: false
+    default: "true"
+  working-directory:
+    description: Directory containing the project and result files, relative to the repository workspace.
+    required: false
+    default: ""
+  check-run:
+    description: Create a GitHub Check Run in addition to the job summary.
+    required: false
+    default: "false"
+  check-name:
+    description: Name of the optional GitHub Check Run.
+    required: false
+    default: "Test results"
+  token:
+    description: GitHub token used only when check-run is true.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  conclusion:
+    description: Report conclusion, success or failure.
+  passed:
+    description: Number of passed tests.
+  failed:
+    description: Number of failed tests.
+  flaky:
+    description: Number of flaky tests.
+  other:
+    description: Number of skipped, unknown, or otherwise classified tests.
+  skipped:
+    description: Alias for the other test count.
+  total:
+    description: Total number of tests.
+  time:
+    description: Total test duration in milliseconds.
+  url:
+    description: URL of the optional GitHub Check Run.
+  check-run-url:
+    description: URL of the optional GitHub Check Run.
+  summary-file:
+    description: Path to the GitHub job summary file.
 
 runs:
   using: node24

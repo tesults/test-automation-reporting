@@ -13,3 +13,31 @@ jobs:
         with:
           node-version: 24
       - run: npm test
+
+      - name: Set up action integration test
+        uses: ./
+
+      - name: Write representative reporter output
+        shell: bash
+        run: |
+          node -e 'require("fs").writeFileSync(process.env.TESULTS_OUTPUT_FILE, JSON.stringify({target:"",results:{cases:[{suite:"self-test",name:"passes",result:"pass",duration:20},{suite:"self-test",name:"fails",result:"fail",duration:30,reason:"representative failure"}]},metadata:{test_framework:"self-test"}}))'
+
+      - name: Finalize action integration test
+        id: report
+        if: always()
+        uses: ./
+        with:
+          mode: finalize
+          report-title: Action integration test
+          report-detail: failures
+          max-annotations: 0
+
+      - name: Verify action outputs
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.report.outputs.conclusion }}" = "failure"
+          test "${{ steps.report.outputs.passed }}" = "1"
+          test "${{ steps.report.outputs.failed }}" = "1"
+          test "${{ steps.report.outputs.total }}" = "2"
+          test "${{ steps.report.outputs.time }}" = "50"

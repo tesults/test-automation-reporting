@@ -16,6 +16,8 @@ See what passed, what failed, what was flaky, and why, without digging through r
 - Screenshots, logs, traces, and other captured files
 - Failure annotations in GitHub
 - A compact view of all test results
+- Configurable report detail, expansion, annotations, and failure behavior
+- Optional GitHub Check Runs and outputs for later workflow steps
 
 ## Supported frameworks
 
@@ -769,6 +771,106 @@ with:
 
 Reporter-generated Tesults JSON always takes priority over `junit-xml`, so this
 input does not alter existing reporter behavior.
+
+## Configuration
+
+The quick-start workflow above remains the default: it creates the report at
+the end of the job, does not fail the job because a test failed, and requires
+no GitHub token permissions.
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `mode` | `setup` | Use `setup` before tests. Use `finalize` in a second action step after tests when later steps need report outputs. |
+| `junit-xml` | | JUnit XML path or glob, relative to `working-directory`. Multiple patterns may be supplied on separate lines. |
+| `report-title` | `Test results` | Job-summary heading. |
+| `use-actions-summary` | `true` | Write the report to the GitHub Actions job summary. Disable it when only a Check Run is wanted. |
+| `report-detail` | `all` | `all` shows every test, `failures` shows failure and flaky details, and `summary` shows counts and suite totals. |
+| `collapsed` | `auto` | `auto` uses the standard compact layout, `always` collapses report details, and `never` expands detail sections. |
+| `max-annotations` | `10` | Maximum failure annotations, from 0 to 50. |
+| `fail-on-test-failure` | `false` | Fail the action if the report contains failed tests. |
+| `fail-on-empty` | `true` | Fail the action when no current-run results are found. |
+| `working-directory` | repository root | Project and result directory, relative to the repository workspace. |
+| `store-attachments` | `false` | Store captured files as a one-day GitHub artifact. |
+| `check-run` | `false` | Create a GitHub Check Run in addition to the job summary. |
+| `check-name` | `Test results` | Name of the optional Check Run. |
+| `token` | `github.token` | Token used only to create an optional Check Run. |
+
+For example, this keeps only failure detail, expands it, limits annotations,
+and makes failed tests fail the action:
+
+```yaml
+- name: Set up test automation reporting
+  uses: tesults/test-automation-reporting@v1
+  with:
+    report-title: Browser tests
+    report-detail: failures
+    collapsed: never
+    max-annotations: 20
+    fail-on-test-failure: true
+
+- name: Run tests
+  run: npm test
+```
+
+### Outputs for later steps
+
+The normal one-step setup reports during GitHub's post-job phase, after regular
+steps have finished. To consume report data in later steps, invoke the action a
+second time with `mode: finalize`. This writes the report immediately and
+automatically prevents the post-job phase from writing it again:
+
+```yaml
+- name: Set up test automation reporting
+  uses: tesults/test-automation-reporting@v1
+
+- name: Run tests
+  run: npm test
+
+- name: Finalize test report
+  id: test-report
+  if: always()
+  uses: tesults/test-automation-reporting@v1
+  with:
+    mode: finalize
+
+- name: Use report outputs
+  if: always()
+  run: |
+    echo "${{ steps.test-report.outputs.passed }} passed"
+    echo "${{ steps.test-report.outputs.failed }} failed"
+```
+
+When using `mode: finalize`, put reporting inputs such as `junit-xml`,
+`report-detail`, and `fail-on-test-failure` on the finalize step. Available
+outputs are `conclusion`, `passed`, `failed`, `flaky`, `other`, `skipped`,
+`total`, `time` (milliseconds), `url`, `check-run-url`, and `summary-file`.
+
+### Optional GitHub Check Run
+
+Job summaries and workflow annotations work without extra permissions. To also
+create a named Check Run, grant the workflow `checks: write` and opt in:
+
+```yaml
+permissions:
+  contents: read
+  checks: write
+
+steps:
+  - name: Set up test automation reporting
+    uses: tesults/test-automation-reporting@v1
+    with:
+      check-run: true
+      check-name: Browser tests
+
+  - name: Run tests
+    run: npm test
+```
+
+The action uses the workflow's `github.token` by default. You can supply a
+different token with the `token` input. Check Runs are optional because some
+repositories intentionally restrict workflow token permissions. If
+`fail-on-empty` is `false`, the action still creates a successful no-results
+Check Run so it can safely be configured as a required check.
 
 ## Screenshots and other files
 

@@ -170,9 +170,15 @@ function totalDuration(cases) {
   }, 0);
 }
 
+function detailsStart(summary, context = {}) {
+  const open = context.collapsed === 'never' ? ' open' : '';
+  return `<details${open}><summary>${summary}</summary>`;
+}
+
 function renderCompactHeader(counts, duration, context = {}) {
   const testLabel = counts.total === 1 ? 'test' : 'tests';
-  let markdown = `## Test results · ${counts.total} ${testLabel}`;
+  const title = markdownText(context.reportTitle || 'Test results') || 'Test results';
+  let markdown = `## ${title} · ${counts.total} ${testLabel}`;
   if (duration) markdown += ` · ${duration}`;
   markdown += '\n\n';
 
@@ -192,11 +198,11 @@ function renderCompactHeader(counts, duration, context = {}) {
 }
 
 
-function renderSuiteBreakdown(cases) {
+function renderSuiteBreakdown(cases, context = {}) {
   const suites = suiteResults(cases);
   if (suites.length <= 1) return '';
 
-  let markdown = `<details><summary>Suite breakdown (${suites.length})</summary>\n\n`;
+  let markdown = `${detailsStart(`Suite breakdown (${suites.length})`, context)}\n\n`;
   markdown += '| Suite | Tests | Passed | Failed | Flaky | Other |\n';
   markdown += '| --- | ---: | ---: | ---: | ---: | ---: |\n';
 
@@ -326,7 +332,7 @@ function renderAttachments(testCase, context = {}) {
 
   const screenshots = files.filter(isImageFile);
   const others = files.filter((file) => !isImageFile(file));
-  let markdown = `<details><summary>Captured files (${files.length})</summary>\n\n`;
+  let markdown = `${detailsStart(`Captured files (${files.length})`, context)}\n\n`;
 
   if (screenshots.length) {
     markdown += '**Screenshots**\n\n';
@@ -354,19 +360,19 @@ function renderAttachments(testCase, context = {}) {
   return markdown;
 }
 
-function renderOutputSection(label, text) {
+function renderOutputSection(label, text, context = {}) {
   if (!text) return '';
   const clean = codeBlock(text);
-  return `<details><summary>${label}</summary>\n\n\`\`\`text\n${clean.slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
+  return `${detailsStart(label, context)}\n\n\`\`\`text\n${clean.slice(0, 12000)}\n\`\`\`\n\n</details>\n\n`;
 }
 
-function renderOutputs(testCase) {
+function renderOutputs(testCase, context = {}) {
   const stdout = outputText(testCase && testCase['_Standard output']);
   const stderr = outputText(testCase && testCase['_Standard error']);
-  return renderOutputSection('Standard output', stdout) + renderOutputSection('Standard error', stderr);
+  return renderOutputSection('Standard output', stdout, context) + renderOutputSection('Standard error', stderr, context);
 }
 
-function renderDescriptionAndParams(testCase) {
+function renderDescriptionAndParams(testCase, context = {}) {
   let markdown = '';
   if (testCase.desc) {
     markdown += `${markdownText(testCase.desc)}\n\n`;
@@ -382,7 +388,7 @@ function renderDescriptionAndParams(testCase) {
 
   const custom = Object.entries(testCase).filter(([key]) => !STANDARD_FIELDS.has(key) && !key.startsWith('_'));
   if (custom.length) {
-    markdown += '<details><summary>Additional details</summary>\n\n';
+    markdown += `${detailsStart('Additional details', context)}\n\n`;
     for (const [key, value] of custom.slice(0, 25)) {
       markdown += `- **${markdownText(key)}:** ${markdownText(typeof value === 'object' ? JSON.stringify(value) : value)}\n`;
     }
@@ -415,7 +421,7 @@ function renderFailure(testCase, context) {
   if (duration) meta.push(duration);
   if (meta.length) markdown += `_${meta.join(' · ')}_\n\n`;
 
-  markdown += renderDescriptionAndParams(testCase);
+  markdown += renderDescriptionAndParams(testCase, context);
   markdown += renderRetrySummary(testCase);
 
   if (info.message) {
@@ -428,17 +434,17 @@ function renderFailure(testCase, context) {
   }
 
   if (info.detail && info.detail !== info.message) {
-    markdown += '<details><summary>Full error details</summary>\n\n';
+    markdown += `${detailsStart('Full error details', context)}\n\n`;
     markdown += `\`\`\`text\n${codeBlock(info.detail).slice(0, 16000)}\n\`\`\`\n\n</details>\n\n`;
   }
 
   const steps = renderSteps(testCase.steps, context);
   if (steps) {
-    markdown += '<details><summary>Steps</summary>\n\n';
+    markdown += `${detailsStart('Steps', context)}\n\n`;
     markdown += steps + '\n</details>\n\n';
   }
 
-  markdown += renderOutputs(testCase);
+  markdown += renderOutputs(testCase, context);
   markdown += renderAttachments(testCase, context);
   return markdown;
 }
@@ -450,7 +456,7 @@ function renderFlaky(testCase, context) {
   const meta = [testCase.suite ? markdownText(testCase.suite) : '', source, duration].filter(Boolean);
   if (meta.length) markdown += `_${meta.join(' · ')}_\n\n`;
   markdown += renderRetrySummary(testCase);
-  markdown += renderOutputs(testCase);
+  markdown += renderOutputs(testCase, context);
   markdown += renderAttachments(testCase, context);
   return markdown;
 }
@@ -474,36 +480,44 @@ function renderSummary(data, context = {}) {
   const duration = formatDuration(totalDuration(cases));
 
   let markdown = renderCompactHeader(counts, duration, context);
-  markdown += renderSuiteBreakdown(cases);
+  let details = renderSuiteBreakdown(cases, context);
+  const reportDetail = context.reportDetail || 'all';
 
   const failed = cases.filter((testCase) => testCase.result === 'fail');
   const flaky = cases.filter(isFlaky);
 
-  if (failed.length) {
-    markdown += `### Failures\n\n`;
+  if (reportDetail !== 'summary' && failed.length) {
+    details += `### Failures\n\n`;
     const visibleFailures = failed.slice(0, 50);
     visibleFailures.forEach((testCase, index) => {
-      markdown += renderFailure(testCase, context);
-      if (index < visibleFailures.length - 1) markdown += '---\n\n';
+      details += renderFailure(testCase, context);
+      if (index < visibleFailures.length - 1) details += '---\n\n';
     });
     if (failed.length > 50) {
-      markdown += `_Showing the first 50 of ${failed.length} failures._\n\n`;
+      details += `_Showing the first 50 of ${failed.length} failures._\n\n`;
     }
   }
 
-  if (flaky.length) {
-    markdown += `### Flaky tests\n\n`;
+  if (reportDetail !== 'summary' && flaky.length) {
+    details += `### Flaky tests\n\n`;
     const visibleFlaky = flaky.slice(0, 25);
     visibleFlaky.forEach((testCase, index) => {
-      markdown += renderFlaky(testCase, context);
-      if (index < visibleFlaky.length - 1) markdown += '---\n\n';
+      details += renderFlaky(testCase, context);
+      if (index < visibleFlaky.length - 1) details += '---\n\n';
     });
   }
 
-  if (cases.length) {
-    markdown += '<details><summary>All test results</summary>\n\n';
-    markdown += renderTestTable(cases, context);
-    markdown += '\n</details>\n\n';
+  if (reportDetail === 'all' && cases.length) {
+    details += `${detailsStart('All test results', context)}\n\n`;
+    details += renderTestTable(cases, context);
+    details += '\n</details>\n\n';
+  }
+
+  if (context.collapsed === 'always' && details) {
+    markdown += '<details><summary>Test details</summary>\n\n';
+    markdown += `${details}</details>\n\n`;
+  } else {
+    markdown += details;
   }
 
   markdown += '---\n\n';
@@ -538,5 +552,6 @@ module.exports = {
   renderSummary,
   resultCounts,
   stripAnsi,
-  testCasesFrom
+  testCasesFrom,
+  totalDuration
 };

@@ -90,7 +90,7 @@ try {
   assert.strictEqual(data.results.cases.length, 4);
   assert.deepStrictEqual(data.metadata, {
     integration_name: 'test-automation-reporting',
-    integration_version: '1.3.0',
+    integration_version: '1.4.0',
     test_framework: 'espresso'
   });
 
@@ -128,7 +128,7 @@ try {
   assert.ok(configuredData.results.cases[1].reason.includes('Expected: 2'));
   assert.deepStrictEqual(configuredData.metadata, {
     integration_name: 'test-automation-reporting',
-    integration_version: '1.3.0',
+    integration_version: '1.4.0',
     test_framework: 'junit-xml'
   });
   assert.strictEqual(
