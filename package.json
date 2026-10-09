@@ -4,7 +4,7 @@
   "private": true,
   "description": "GitHub-native test reports with failures, retries, logs, screenshots, and flaky test insights",
   "scripts": {
-    "test": "node test/report.test.js"
+    "test": "node test/report.test.js && node test/junit.test.js"
   },
   "license": "MIT"
 }

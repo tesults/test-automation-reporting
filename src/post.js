@@ -10,6 +10,7 @@ const {
   resultCounts,
   testCasesFrom
 } = require('./report');
+const { androidJUnitData } = require('./junit');
 
 function escapeMessage(value) {
   return String(value)
@@ -201,17 +202,35 @@ function reportContext(attachmentUrl) {
 
 function run() {
   const outputFile = process.env.STATE_tesults_output_file || process.env.TESULTS_OUTPUT_FILE;
+  let data;
 
-  if (!outputFile || !fs.existsSync(outputFile)) {
-    const message = 'No Tesults results file was produced. Make sure a Tesults framework reporter is installed and configured, and that this action appears before the test step.';
-    emitError(message);
-    appendSummary(`# Test Automation Reporting\n\n${message}\n`);
-    process.exitCode = 1;
-    return;
+  if (outputFile && fs.existsSync(outputFile)) {
+    try {
+      data = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+    } catch (error) {
+      const message = `Unable to process test results: ${error.message}`;
+      emitError(message);
+      appendSummary(`# Test Automation Reporting\n\n${message}\n`);
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    data = androidJUnitData(
+      process.env.GITHUB_WORKSPACE,
+      process.env.STATE_tesults_started_at
+    );
+    if (data) {
+      console.log('Using Android instrumentation JUnit XML results.');
+    } else {
+      const message = 'No test results were produced. Make sure a supported framework reporter is installed and configured, or run Espresso with an Android Gradle test task, and ensure this action appears before the test step.';
+      emitError(message);
+      appendSummary(`# Test Automation Reporting\n\n${message}\n`);
+      process.exitCode = 1;
+      return;
+    }
   }
 
   try {
-    const data = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
     const attachmentUrl = uploadAttachments(data);
     appendSummary(renderSummary(data, reportContext(attachmentUrl)));
 
