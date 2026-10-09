@@ -77,7 +77,7 @@ try {
   assert.strictEqual(data.results.cases.length, 4);
   assert.deepStrictEqual(data.metadata, {
     integration_name: 'test-automation-reporting',
-    integration_version: '1.1.0',
+    integration_version: '1.2.0',
     test_framework: 'espresso'
   });
 
