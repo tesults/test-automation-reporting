@@ -25,6 +25,7 @@ same way as frameworks with a dedicated reporter.
 
 | Framework | Integration and minimum version | Setup |
 | --- | --- | --- |
+| colcon (ROS 2 workspace) | `colcon-tesults>=1.1.0` | [Instructions](#colcon) |
 | CodeceptJS | `codeceptjs-tesults@^1.3.0` | [Instructions](#codeceptjs) |
 | Cypress | `cypress-tesults-reporter@^1.5.0` (recommended) or `mocha-tesults-reporter@^1.5.0` | [Instructions](#cypress) |
 | EXP | `exp-tf@^1.2.0` | [Instructions](#exp) |
@@ -94,6 +95,9 @@ npm install --save-dev codeceptjs-tesults@^1.3.0
 
 # Postman/Newman
 npm install --save-dev newman-reporter-tesults@^1.2.1
+
+# colcon / ROS 2 workspace
+python -m pip install "colcon-tesults>=1.1.0"
 
 # pytest
 python -m pip install "pytest-tesults>=1.9.0"
@@ -375,6 +379,27 @@ Run the collection with the Tesults Newman reporter:
 ```sh
 npx newman run your_collection.json -r tesults
 ```
+
+#### colcon
+
+For basic pass/fail reporting across a mixed ROS 2 workspace, install
+`colcon-tesults` and run the workspace tests normally. No Tesults target token
+or additional configuration is required:
+
+```sh
+colcon test
+```
+
+The extension collects the JUnit XML produced by packages in the workspace and
+writes one report for the action. For richer framework-specific details, use
+`tesults-gtest` for C++ packages or `pytest-tesults` for Python packages as
+described below.
+
+Configure either `colcon-tesults` or the framework-specific reporters for a
+given action-enabled test job, not both. They otherwise write to the same
+action-provided output file. See the
+[Tesults colcon documentation](https://www.tesults.com/docs/colcon) for
+additional setup options.
 
 #### pytest
 
