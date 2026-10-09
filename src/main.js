@@ -23,8 +23,8 @@ function reportComplete(markerFile) {
 
 async function run() {
   const mode = input('MODE', 'setup').trim().toLowerCase() || 'setup';
-  if (!['setup', 'finalize'].includes(mode)) {
-    throw new Error('mode must be setup or finalize.');
+  if (!['setup', 'collect', 'finalize'].includes(mode)) {
+    throw new Error('mode must be setup, collect, or finalize.');
   }
 
   if (mode === 'finalize') {
@@ -42,27 +42,39 @@ async function run() {
     process.env.RUNNER_TEMP || os.tmpdir(),
     `tesults-results-${crypto.randomUUID()}.json`
   );
-  const markerFile = path.join(
-    process.env.RUNNER_TEMP || os.tmpdir(),
-    `tesults-report-complete-${crypto.randomUUID()}`
-  );
+  const markerFile = mode === 'setup'
+    ? path.join(
+      process.env.RUNNER_TEMP || os.tmpdir(),
+      `tesults-report-complete-${crypto.randomUUID()}`
+    )
+    : '';
   const startedAt = Date.now();
 
   if (fs.existsSync(outputFile)) {
     fs.rmSync(outputFile, { force: true });
   }
-  if (fs.existsSync(markerFile)) {
+  if (markerFile && fs.existsSync(markerFile)) {
     fs.rmSync(markerFile, { force: true });
   }
 
   appendCommandFile(process.env.GITHUB_ENV, 'TESULTS_OUTPUT_FILE', outputFile);
   appendCommandFile(process.env.GITHUB_ENV, 'TESULTS_STARTED_AT', startedAt);
-  appendCommandFile(process.env.GITHUB_ENV, 'TESULTS_REPORT_COMPLETE_FILE', markerFile);
   appendCommandFile(process.env.GITHUB_STATE, 'tesults_output_file', outputFile);
   appendCommandFile(process.env.GITHUB_STATE, 'tesults_started_at', startedAt);
-  appendCommandFile(process.env.GITHUB_STATE, 'tesults_report_complete_file', markerFile);
+  if (process.env.GITHUB_OUTPUT) {
+    appendCommandFile(process.env.GITHUB_OUTPUT, 'results-file', outputFile);
+  }
 
-  console.log('Test automation reporting is ready.');
+  if (mode === 'setup') {
+    appendCommandFile(process.env.GITHUB_ENV, 'TESULTS_REPORT_COMPLETE_FILE', markerFile);
+    appendCommandFile(process.env.GITHUB_STATE, 'tesults_report_complete_file', markerFile);
+  } else {
+    appendCommandFile(process.env.GITHUB_STATE, 'tesults_skip_post', 'true');
+  }
+
+  console.log(mode === 'collect'
+    ? 'Test result collection is ready. The generated JSON can be uploaded as a workflow artifact.'
+    : 'Test automation reporting is ready.');
   console.log('Run your tests normally. The configured reporter or JUnit XML logger will provide results for this action.');
 }
 

@@ -12,6 +12,7 @@ const {
   totalDuration
 } = require('./report');
 const { androidJUnitData, configuredJUnitData } = require('./junit');
+const { configuredTesultsData, isInside } = require('./results');
 
 function escapeMessage(value) {
   return String(value)
@@ -90,15 +91,36 @@ function setReportOutputs(counts, duration, conclusion, checkRunUrl = '') {
 
 function workspaceDirectory() {
   const root = path.resolve(process.env.GITHUB_WORKSPACE || process.cwd());
+  const realRoot = fs.existsSync(root) ? fs.realpathSync(root) : root;
   const configured = input('WORKING-DIRECTORY').trim();
-  if (!configured) return root;
+  if (!configured) return realRoot;
 
   const directory = path.resolve(root, configured);
-  const relative = path.relative(root, directory);
-  if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+  if (!isInside(root, directory)) {
     throw new Error('working-directory must be inside the GitHub workspace.');
   }
-  return directory;
+  const realDirectory = fs.existsSync(directory) ? fs.realpathSync(directory) : directory;
+  if (!isInside(realRoot, realDirectory)) {
+    throw new Error('working-directory must be inside the GitHub workspace.');
+  }
+  return realDirectory;
+}
+
+function testedSha(explicitSha = '') {
+  let sha = String(explicitSha || '').trim();
+  if (!sha && process.env.GITHUB_EVENT_NAME === 'workflow_run' && process.env.GITHUB_EVENT_PATH) {
+    try {
+      const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+      sha = String(event.workflow_run && event.workflow_run.head_sha || '').trim();
+    } catch (error) {
+      throw new Error(`Unable to read the workflow_run commit SHA: ${error.message}`);
+    }
+  }
+  if (!sha) sha = String(process.env.GITHUB_SHA || '').trim();
+  if (sha && !/^[0-9a-f]{7,64}$/i.test(sha)) {
+    throw new Error('commit-sha must be a Git commit SHA.');
+  }
+  return sha;
 }
 
 function reportSettings() {
@@ -106,12 +128,14 @@ function reportSettings() {
     checkName: input('CHECK-NAME', 'Test results').trim() || 'Test results',
     checkRun: booleanInput('CHECK-RUN', false),
     collapsed: choiceInput('COLLAPSED', ['auto', 'always', 'never'], 'auto'),
+    commitSha: testedSha(input('COMMIT-SHA')),
     failOnEmpty: booleanInput('FAIL-ON-EMPTY', true),
     failOnTestFailure: booleanInput('FAIL-ON-TEST-FAILURE', false),
     junitInput: input('JUNIT-XML').trim(),
     maxAnnotations: integerInput('MAX-ANNOTATIONS', 10, 0, 50),
     reportDetail: choiceInput('REPORT-DETAIL', ['all', 'failures', 'summary'], 'all'),
     reportTitle: input('REPORT-TITLE', 'Test results').trim() || 'Test results',
+    resultsInput: input('RESULTS-FILE').trim(),
     storeAttachments: booleanInput('STORE-ATTACHMENTS', false),
     token: input('TOKEN').trim(),
     useActionsSummary: booleanInput('USE-ACTIONS-SUMMARY', true),
@@ -149,8 +173,11 @@ function uniqueDestination(directory, basename) {
   return candidate;
 }
 
-function stageAttachments(data) {
+function stageAttachments(data, allowedRoot) {
   const stagingRoot = fs.mkdtempSync(path.join(process.env.RUNNER_TEMP || os.tmpdir(), 'tesults-files-'));
+  const realAllowedRoot = allowedRoot && fs.existsSync(allowedRoot)
+    ? fs.realpathSync(allowedRoot)
+    : allowedRoot;
   let copied = 0;
 
   for (const testCase of testCasesFrom(data)) {
@@ -162,9 +189,13 @@ function stageAttachments(data) {
 
     for (const file of files) {
       try {
-        if (!fs.existsSync(file) || !fs.statSync(file).isFile()) continue;
-        const destination = uniqueDestination(caseDir, path.basename(file));
-        fs.copyFileSync(file, destination);
+        const candidate = allowedRoot ? path.resolve(allowedRoot, file) : file;
+        if (!fs.existsSync(candidate)) continue;
+        const source = allowedRoot ? fs.realpathSync(candidate) : candidate;
+        if (realAllowedRoot && !isInside(realAllowedRoot, source)) continue;
+        if (!fs.statSync(source).isFile()) continue;
+        const destination = uniqueDestination(caseDir, path.basename(source));
+        fs.copyFileSync(source, destination);
         copied += 1;
       } catch (error) {
         emitWarning(`Unable to stage test attachment ${path.basename(file)}: ${error.message}`);
@@ -180,12 +211,13 @@ function parseArtifactUrl(output) {
   return match ? match[1].trim() : undefined;
 }
 
-function uploadAttachments(data) {
-  if (!booleanInput('STORE-ATTACHMENTS', false)) {
+function uploadAttachments(data, settings) {
+  if (!settings.storeAttachments) {
     return undefined;
   }
 
-  const { stagingRoot, copied } = stageAttachments(data);
+  const allowedRoot = settings.resultsInput ? settings.workingDirectory : undefined;
+  const { stagingRoot, copied } = stageAttachments(data, allowedRoot);
   if (!copied) {
     fs.rmSync(stagingRoot, { recursive: true, force: true });
     return undefined;
@@ -283,8 +315,8 @@ function checkAnnotations(reportAnnotations) {
 async function createCheckRun(settings, markdown, counts, reportAnnotations, conclusionOverride) {
   if (!settings.checkRun) return '';
   if (!settings.token) throw new Error('token is required when check-run is true.');
-  if (!process.env.GITHUB_REPOSITORY || !process.env.GITHUB_SHA) {
-    throw new Error('GITHUB_REPOSITORY and GITHUB_SHA are required to create a Check Run.');
+  if (!process.env.GITHUB_REPOSITORY || !settings.commitSha) {
+    throw new Error('GITHUB_REPOSITORY and a tested commit SHA are required to create a Check Run.');
   }
 
   const apiUrl = process.env.GITHUB_API_URL || 'https://api.github.com';
@@ -302,7 +334,7 @@ async function createCheckRun(settings, markdown, counts, reportAnnotations, con
     },
     body: JSON.stringify({
       name: settings.checkName,
-      head_sha: process.env.GITHUB_SHA,
+      head_sha: settings.commitSha,
       status: 'completed',
       conclusion,
       details_url: process.env.GITHUB_RUN_ID
@@ -348,7 +380,7 @@ function reportContext(attachmentUrl, settings) {
     actionRef: actionRef(),
     repository: process.env.GITHUB_REPOSITORY,
     serverUrl: process.env.GITHUB_SERVER_URL || 'https://github.com',
-    sha: process.env.GITHUB_SHA,
+    sha: settings.commitSha,
     workspace: process.env.GITHUB_WORKSPACE
   };
 }
@@ -358,6 +390,9 @@ function emptyCounts() {
 }
 
 function emptyMessage(settings) {
+  if (settings.resultsInput) {
+    return `No Tesults JSON result files matched: ${settings.resultsInput}`;
+  }
   return settings.junitInput
     ? `No current-run JUnit XML test results matched: ${settings.junitInput}`
     : 'No test results were produced. Make sure a supported framework reporter is installed and configured, or run Espresso with an Android Gradle test task, and ensure this action appears before the test step.';
@@ -384,7 +419,19 @@ async function run() {
   const startedAt = process.env.STATE_tesults_started_at || process.env.TESULTS_STARTED_AT;
   let data;
 
-  if (outputFile && fs.existsSync(outputFile)) {
+  if (settings.resultsInput) {
+    try {
+      data = configuredTesultsData(settings.workingDirectory, settings.resultsInput);
+      if (data) console.log('Using configured Tesults JSON results.');
+    } catch (error) {
+      const message = `Unable to process test results: ${error.message}`;
+      emitError(message);
+      if (settings.useActionsSummary) appendSummary(errorSummary(settings, message));
+      setReportOutputs(emptyCounts(), 0, 'failure');
+      process.exitCode = 1;
+      return;
+    }
+  } else if (outputFile && fs.existsSync(outputFile)) {
     try {
       data = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
     } catch (error) {
@@ -415,37 +462,38 @@ async function run() {
       }
     }
 
-    if (!data) {
-      const message = emptyMessage(settings);
-      if (settings.failOnEmpty) emitError(message);
-      else emitWarning(message);
-      const markdown = errorSummary(settings, message);
-      if (settings.useActionsSummary) appendSummary(markdown);
-      const conclusion = settings.failOnEmpty ? 'failure' : 'success';
-      let checkRunUrl = '';
-      if (settings.checkRun) {
-        try {
-          checkRunUrl = await createCheckRun(
-            settings,
-            markdown,
-            emptyCounts(),
-            [],
-            conclusion
-          );
-          console.log(`Created GitHub Check Run: ${checkRunUrl}`);
-        } catch (error) {
-          emitError(`Unable to create GitHub Check Run: ${error.message}`);
-          process.exitCode = 1;
-        }
+  }
+
+  if (!data) {
+    const message = emptyMessage(settings);
+    if (settings.failOnEmpty) emitError(message);
+    else emitWarning(message);
+    const markdown = errorSummary(settings, message);
+    if (settings.useActionsSummary) appendSummary(markdown);
+    const conclusion = settings.failOnEmpty ? 'failure' : 'success';
+    let checkRunUrl = '';
+    if (settings.checkRun) {
+      try {
+        checkRunUrl = await createCheckRun(
+          settings,
+          markdown,
+          emptyCounts(),
+          [],
+          conclusion
+        );
+        console.log(`Created GitHub Check Run: ${checkRunUrl}`);
+      } catch (error) {
+        emitError(`Unable to create GitHub Check Run: ${error.message}`);
+        process.exitCode = 1;
       }
-      setReportOutputs(emptyCounts(), 0, conclusion, checkRunUrl);
-      if (settings.failOnEmpty) process.exitCode = 1;
-      return;
     }
+    setReportOutputs(emptyCounts(), 0, conclusion, checkRunUrl);
+    if (settings.failOnEmpty) process.exitCode = 1;
+    return;
   }
 
   try {
-    const attachmentUrl = uploadAttachments(data);
+    const attachmentUrl = uploadAttachments(data, settings);
     const markdown = renderSummary(data, reportContext(attachmentUrl, settings));
     if (settings.useActionsSummary) appendSummary(markdown);
 
@@ -512,5 +560,6 @@ module.exports = {
   reportSettings,
   run,
   setReportOutputs,
+  testedSha,
   workspaceDirectory
 };

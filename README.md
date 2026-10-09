@@ -780,8 +780,9 @@ no GitHub token permissions.
 
 | Input | Default | Description |
 | --- | --- | --- |
-| `mode` | `setup` | Use `setup` before tests. Use `finalize` in a second action step after tests when later steps need report outputs. |
+| `mode` | `setup` | Use `setup` before same-job tests, `collect` when JSON will be uploaded as an artifact, or `finalize` to report immediately. |
 | `junit-xml` | | JUnit XML path or glob, relative to `working-directory`. Multiple patterns may be supplied on separate lines. |
+| `results-file` | | Tesults JSON path or glob, relative to `working-directory`. Multiple files are merged into one report. |
 | `report-title` | `Test results` | Job-summary heading. |
 | `use-actions-summary` | `true` | Write the report to the GitHub Actions job summary. Disable it when only a Check Run is wanted. |
 | `report-detail` | `all` | `all` shows every test, `failures` shows failure and flaky details, and `summary` shows counts and suite totals. |
@@ -790,6 +791,7 @@ no GitHub token permissions.
 | `fail-on-test-failure` | `false` | Fail the action if the report contains failed tests. |
 | `fail-on-empty` | `true` | Fail the action when no current-run results are found. |
 | `working-directory` | repository root | Project and result directory, relative to the repository workspace. |
+| `commit-sha` | detected automatically | Tested commit used for source links and an optional Check Run. |
 | `store-attachments` | `false` | Store captured files as a one-day GitHub artifact. |
 | `check-run` | `false` | Create a GitHub Check Run in addition to the job summary. |
 | `check-name` | `Test results` | Name of the optional Check Run. |
@@ -843,7 +845,97 @@ automatically prevents the post-job phase from writing it again:
 When using `mode: finalize`, put reporting inputs such as `junit-xml`,
 `report-detail`, and `fail-on-test-failure` on the finalize step. Available
 outputs are `conclusion`, `passed`, `failed`, `flaky`, `other`, `skipped`,
-`total`, `time` (milliseconds), `url`, `check-run-url`, and `summary-file`.
+`total`, `time` (milliseconds), `url`, `check-run-url`, `summary-file`, and
+`results-file`. The `results-file` output is available from `setup` and
+`collect` mode.
+
+### Reports from another job or workflow
+
+Use `mode: collect` when tests run in one job but reporting should happen in a
+different job or workflow. Collect mode supplies `TESULTS_OUTPUT_FILE` to the
+framework reporter without creating a report in that job. Upload the resulting
+file with GitHub's official artifact action:
+
+```yaml
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Collect Tesults JSON
+        id: tesults
+        uses: tesults/test-automation-reporting@v1
+        with:
+          mode: collect
+      - name: Run tests
+        run: npm test
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tesults-results-${{ matrix.os }}
+          path: ${{ steps.tesults.outputs.results-file }}
+          retention-days: 1
+
+  report:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: tesults-results-*
+          path: downloaded-results
+      - name: Report all matrix results
+        uses: tesults/test-automation-reporting@v1
+        with:
+          mode: finalize
+          results-file: downloaded-results/**/*.json
+```
+
+The action merges all matching Tesults JSON files. An explicit `results-file`
+takes priority over same-job reporter output and `junit-xml`.
+
+For public repositories, test code from a fork can run in a read-only workflow
+and upload its JSON. A trusted `workflow_run` workflow can then download and
+report it without executing anything from the artifact:
+
+```yaml
+name: Test report
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: write
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: tesults-results-*
+          path: downloaded-results
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - uses: tesults/test-automation-reporting@v1
+        with:
+          mode: finalize
+          results-file: downloaded-results/**/*.json
+          check-run: true
+```
+
+For `workflow_run`, the action automatically associates source links and the
+Check Run with the tested workflow's head commit. `commit-sha` is available for
+other advanced cases. When imported results request attachment storage, the
+action only reads attachment paths inside `working-directory`.
 
 ### Optional GitHub Check Run
 

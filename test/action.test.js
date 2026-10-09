@@ -3,7 +3,7 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { createCheckRun } = require('../src/post');
+const { createCheckRun, testedSha } = require('../src/post');
 
 const root = path.join(__dirname, '..');
 
@@ -29,14 +29,16 @@ function runNode(script, environment) {
     const setupEnvironmentFile = path.join(temporary, 'setup-env');
     const setupStateFile = path.join(temporary, 'setup-state');
     const finalStateFile = path.join(temporary, 'final-state');
+    const setupOutputFile = path.join(temporary, 'setup-output');
     const outputFile = path.join(temporary, 'outputs');
     const summaryFile = path.join(temporary, 'summary.md');
-    for (const file of [setupEnvironmentFile, setupStateFile, finalStateFile, outputFile, summaryFile]) {
+    for (const file of [setupEnvironmentFile, setupStateFile, finalStateFile, setupOutputFile, outputFile, summaryFile]) {
       fs.writeFileSync(file, '');
     }
 
     const setup = runNode('main.js', {
       GITHUB_ENV: setupEnvironmentFile,
+      GITHUB_OUTPUT: setupOutputFile,
       GITHUB_STATE: setupStateFile,
       GITHUB_WORKSPACE: temporary,
       RUNNER_TEMP: temporary,
@@ -51,6 +53,7 @@ function runNode(script, environment) {
     assert.ok(setupEnvironment.TESULTS_STARTED_AT);
     assert.ok(setupEnvironment.TESULTS_REPORT_COMPLETE_FILE);
     assert.strictEqual(setupState.tesults_output_file, setupEnvironment.TESULTS_OUTPUT_FILE);
+    assert.strictEqual(commandValues(setupOutputFile)['results-file'], setupEnvironment.TESULTS_OUTPUT_FILE);
 
     fs.writeFileSync(setupEnvironment.TESULTS_OUTPUT_FILE, JSON.stringify({
       target: '',
@@ -117,6 +120,30 @@ function runNode(script, environment) {
     assert.ok(setupPost.stdout.includes('Skipping duplicate post-job reporting'));
     assert.ok(!fs.existsSync(setupEnvironment.TESULTS_REPORT_COMPLETE_FILE));
 
+    const collectEnvironmentFile = path.join(temporary, 'collect-env');
+    const collectStateFile = path.join(temporary, 'collect-state');
+    const collectOutputFile = path.join(temporary, 'collect-output');
+    for (const file of [collectEnvironmentFile, collectStateFile, collectOutputFile]) fs.writeFileSync(file, '');
+    const collect = runNode('main.js', {
+      GITHUB_ENV: collectEnvironmentFile,
+      GITHUB_OUTPUT: collectOutputFile,
+      GITHUB_STATE: collectStateFile,
+      GITHUB_WORKSPACE: temporary,
+      RUNNER_TEMP: temporary,
+      'INPUT_MODE': 'collect'
+    });
+    assert.strictEqual(collect.status, 0, collect.stderr);
+    assert.ok(collect.stdout.includes('Test result collection is ready.'));
+    const collectState = commandValues(collectStateFile);
+    assert.strictEqual(collectState.tesults_skip_post, 'true');
+    assert.strictEqual(
+      commandValues(collectOutputFile)['results-file'],
+      commandValues(collectEnvironmentFile).TESULTS_OUTPUT_FILE
+    );
+    const collectPost = runNode('post.js', { STATE_tesults_skip_post: collectState.tesults_skip_post });
+    assert.strictEqual(collectPost.status, 0, collectPost.stderr);
+    assert.ok(collectPost.stdout.includes('Skipping post-job reporting'));
+
     fs.writeFileSync(outputFile, '');
     fs.writeFileSync(summaryFile, '');
     const empty = runNode('post.js', {
@@ -154,6 +181,28 @@ function runNode(script, environment) {
     assert.ok(nestedResults.stdout.includes('Using configured JUnit XML results.'));
     assert.ok(fs.readFileSync(summaryFile, 'utf8').includes('works'));
 
+    fs.writeFileSync(path.join(projectDirectory, 'imported-a.json'), JSON.stringify({
+      results: { cases: [{ suite: 'imported', name: 'first', result: 'pass', duration: 5 }] },
+      metadata: { test_framework: 'jest' }
+    }));
+    fs.writeFileSync(path.join(projectDirectory, 'imported-b.json'), JSON.stringify({
+      results: { cases: [{ suite: 'imported', name: 'second', result: 'pass', duration: 7 }] },
+      metadata: { test_framework: 'jest' }
+    }));
+    fs.writeFileSync(summaryFile, '');
+    const importedResults = runNode('post.js', {
+      GITHUB_STEP_SUMMARY: summaryFile,
+      GITHUB_WORKSPACE: temporary,
+      'INPUT_RESULTS-FILE': 'imported-*.json',
+      'INPUT_WORKING-DIRECTORY': 'project',
+      'INPUT_STORE-ATTACHMENTS': 'false'
+    });
+    assert.strictEqual(importedResults.status, 0, importedResults.stderr);
+    assert.ok(importedResults.stdout.includes('Using configured Tesults JSON results.'));
+    assert.ok(importedResults.stdout.includes('Test report: 2 total, 2 passed'));
+    assert.ok(fs.readFileSync(summaryFile, 'utf8').includes('first'));
+    assert.ok(fs.readFileSync(summaryFile, 'utf8').includes('second'));
+
     fs.writeFileSync(summaryFile, '');
     const noJobSummary = runNode('post.js', {
       GITHUB_STEP_SUMMARY: summaryFile,
@@ -178,7 +227,9 @@ function runNode(script, environment) {
       GITHUB_REPOSITORY: process.env.GITHUB_REPOSITORY,
       GITHUB_RUN_ID: process.env.GITHUB_RUN_ID,
       GITHUB_SERVER_URL: process.env.GITHUB_SERVER_URL,
-      GITHUB_SHA: process.env.GITHUB_SHA
+      GITHUB_SHA: process.env.GITHUB_SHA,
+      GITHUB_EVENT_NAME: process.env.GITHUB_EVENT_NAME,
+      GITHUB_EVENT_PATH: process.env.GITHUB_EVENT_PATH
     };
     let request;
     try {
@@ -196,7 +247,7 @@ function runNode(script, environment) {
       };
 
       const checkUrl = await createCheckRun(
-        { checkRun: true, checkName: 'Browser tests', token: 'secret' },
+        { checkRun: true, checkName: 'Browser tests', token: 'secret', commitSha: '1234567890abcdef' },
         '## Test results',
         { total: 2, passed: 1, failed: 1, flaky: 0, other: 0 },
         [{
@@ -209,19 +260,27 @@ function runNode(script, environment) {
       assert.strictEqual(request.url, 'https://api.github.test/repos/tesults/example/check-runs');
       const body = JSON.parse(request.options.body);
       assert.strictEqual(body.name, 'Browser tests');
+      assert.strictEqual(body.head_sha, '1234567890abcdef');
       assert.strictEqual(body.conclusion, 'failure');
       assert.strictEqual(body.details_url, 'https://github.test/tesults/example/actions/runs/123');
       assert.strictEqual(body.output.annotations.length, 1);
       assert.strictEqual(body.output.annotations[0].path, 'tests/checkout.js');
 
       await createCheckRun(
-        { checkRun: true, checkName: 'Optional tests', token: 'secret' },
+        { checkRun: true, checkName: 'Optional tests', token: 'secret', commitSha: '1234567890abcdef' },
         '# Optional tests\n\nNo results were produced.',
         { total: 0, passed: 0, failed: 0, flaky: 0, other: 0 },
         [],
         'failure'
       );
       assert.strictEqual(JSON.parse(request.options.body).conclusion, 'failure');
+
+      const eventFile = path.join(temporary, 'workflow-run-event.json');
+      fs.writeFileSync(eventFile, JSON.stringify({ workflow_run: { head_sha: 'fedcba0987654321' } }));
+      process.env.GITHUB_EVENT_NAME = 'workflow_run';
+      process.env.GITHUB_EVENT_PATH = eventFile;
+      assert.strictEqual(testedSha(), 'fedcba0987654321');
+      assert.strictEqual(testedSha('abcdef1234567'), 'abcdef1234567');
     } finally {
       global.fetch = originalFetch;
       for (const [name, value] of Object.entries(originalEnvironment)) {

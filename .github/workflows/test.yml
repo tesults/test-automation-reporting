@@ -15,6 +15,7 @@ jobs:
       - run: npm test
 
       - name: Set up action integration test
+        id: setup-action
         uses: ./
 
       - name: Write representative reporter output
@@ -41,3 +42,39 @@ jobs:
           test "${{ steps.report.outputs.failed }}" = "1"
           test "${{ steps.report.outputs.total }}" = "2"
           test "${{ steps.report.outputs.time }}" = "50"
+
+      - name: Upload action integration results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tesults-action-integration-results
+          path: ${{ steps.setup-action.outputs.results-file }}
+          retention-days: 1
+
+  cross-job-report:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: tesults-action-integration-results
+          path: cross-job-results
+      - name: Report downloaded results
+        id: cross-job-report
+        uses: ./
+        with:
+          mode: finalize
+          working-directory: cross-job-results
+          results-file: "*.json"
+          report-title: Cross-job integration test
+          max-annotations: 0
+      - name: Verify cross-job outputs
+        shell: bash
+        run: |
+          test "${{ steps.cross-job-report.outputs.conclusion }}" = "failure"
+          test "${{ steps.cross-job-report.outputs.passed }}" = "1"
+          test "${{ steps.cross-job-report.outputs.failed }}" = "1"
+          test "${{ steps.cross-job-report.outputs.total }}" = "2"
+          test "${{ steps.cross-job-report.outputs.time }}" = "50"
