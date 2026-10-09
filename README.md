@@ -25,6 +25,7 @@ same way as frameworks with a dedicated reporter.
 
 | Framework | Integration and minimum version | Setup |
 | --- | --- | --- |
+| cargo-nextest | `tesults-test` 1.1.0 or later | [Instructions](#cargo-nextest) |
 | colcon (ROS 2 workspace) | `colcon-tesults>=1.1.0` | [Instructions](#colcon) |
 | CodeceptJS | `codeceptjs-tesults@^1.3.0` | [Instructions](#codeceptjs) |
 | Cypress | `cypress-tesults-reporter@^1.5.0` (recommended) or `mocha-tesults-reporter@^1.5.0` | [Instructions](#cypress) |
@@ -45,7 +46,10 @@ same way as frameworks with a dedicated reporter.
 | Robot Framework | `robot-tesults>=1.3.0` | [Instructions](#robot-framework) |
 | ROS 2 C++ (GoogleTest) | `tesults-gtest` v1.0.3 or later with `tesults/cpp` v1.0.3 or later | [Instructions](#ros-2-cpp-googletest) |
 | ROS 2 Python and `launch_testing` | `pytest-tesults>=1.9.0` | [Instructions](#ros-2-python-and-launch_testing) |
+| ROS 2 Rust | `tesults-test` 1.1.0 or later | [Instructions](#ros-2-rust) |
 | RSpec | `rspec_tesults_formatter` 1.2.0 or later | [Instructions](#rspec) |
+| rstest | `rstest` with `tesults-test` 1.1.0 or later | [Instructions](#rstest) |
+| Rust (`#[test]`) | `tesults-test` 1.1.0 or later | [Instructions](#rust) |
 | Selenium | The supported test runner or framework used by the project | [Instructions](#selenium) |
 | TestCafe | `testcafe-reporter-tesults@^1.3.0` | [Instructions](#testcafe) |
 | TestNG | `com.tesults.testng:tesults-testng:1.3.0` or later | [Instructions](#testng) |
@@ -107,6 +111,9 @@ python -m pip install "robot-tesults>=1.3.0"
 
 # RSpec
 gem install rspec_tesults_formatter -v ">= 1.2.0"
+
+# Rust, cargo-nextest, rstest, and ROS 2 Rust
+cargo add --dev tesults-test@1.1.0
 ```
 
 For GoogleTest and ROS 2 C++ packages, add the C++ library and GoogleTest
@@ -448,6 +455,56 @@ rspec --require rspec_tesults_formatter --format TesultsFormatter spec
 If the formatter is already loaded from `.rspec`, keep your existing command
 and configuration. The action sets `TESULTS_OUTPUT_FILE` automatically.
 
+#### Rust
+
+Replace Rust's built-in `#[test]` attribute with `#[tesults_test::test]` on
+each test you want reported:
+
+```rust
+#[tesults_test::test]
+fn it_adds() {
+    assert_eq!(2 + 2, 4);
+}
+```
+
+Run the tests normally. No Tesults target token is required:
+
+```sh
+cargo test
+```
+
+#### cargo-nextest
+
+Use the same `#[tesults_test::test]` attribute shown above, then run the
+existing nextest suite normally:
+
+```sh
+cargo nextest run
+```
+
+`tesults-test` merges the reports produced by nextest's parallel test
+processes into the action-provided output file.
+
+#### rstest
+
+Keep `#[rstest]` first and place `#[tesults_test::test]` after the rstest case
+attributes, immediately above the function:
+
+```rust
+use rstest::rstest;
+
+#[rstest]
+#[case(1, 2, 3)]
+#[case(4, 5, 9)]
+#[tesults_test::test]
+fn it_adds(#[case] left: i32, #[case] right: i32, #[case] expected: i32) {
+    assert_eq!(left + right, expected);
+}
+```
+
+Run the suite with `cargo test` or `cargo nextest run`. Each generated rstest
+case is included in the Action report.
+
 #### GoogleTest
 
 The listener registers itself automatically when the action supplies
@@ -587,6 +644,21 @@ colcon test --packages-select your_cpp_package
 
 No Tesults target token is required. The action-provided output file also
 merges results from multiple GoogleTest executables in the package. See the
+[Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2) for additional
+ROS 2 setup details.
+
+#### ROS 2 Rust
+
+Rust packages in ROS 2 use the same `tesults-test` integration. Add the crate
+and replace `#[test]` with `#[tesults_test::test]` as shown in the Rust section,
+then run the package's existing Cargo or colcon test command. For example:
+
+```sh
+colcon test --packages-select your_rust_package
+```
+
+Use either `tesults-test` for rich Rust results or `colcon-tesults` for basic
+workspace-wide JUnit reporting in a given action-enabled job, not both. See the
 [Tesults ROS 2 documentation](https://www.tesults.com/docs/ros2) for additional
 ROS 2 setup details.
 
