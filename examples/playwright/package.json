@@ -1,0 +1,13 @@
+{
+  "name": "tesults-action-playwright-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright example for Test Automation Reporting for GitHub Actions",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "playwright-tesults-reporter": "1.6.1"
+  }
+}

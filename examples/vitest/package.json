@@ -1,0 +1,14 @@
+{
+  "name": "tesults-action-vitest-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Vitest example for Test Automation Reporting for GitHub Actions",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "3.2.7",
+    "vitest-tesults-reporter": "1.1.0"
+  }
+}

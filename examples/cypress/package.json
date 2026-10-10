@@ -1,0 +1,13 @@
+{
+  "name": "tesults-action-cypress-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cypress example for Test Automation Reporting for GitHub Actions",
+  "scripts": {
+    "test": "node cypress-run.js"
+  },
+  "devDependencies": {
+    "cypress": "16.1.1",
+    "cypress-tesults-reporter": "1.5.0"
+  }
+}

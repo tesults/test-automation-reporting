@@ -112,4 +112,157 @@ jobs:
         if: always()
         shell: bash
         run: |
-          node -e 'const fs=require("fs"); const p=process.argv[1]; const data=JSON.parse(fs.readFileSync(p)); if(data.metadata?.test_framework!=="jest") throw new Error("Expected Jest metadata"); if(data.results?.cases?.length!==2) throw new Error("Expected two Jest cases"); if(data.results.cases.some(test=>test.result!=="pass")) throw new Error("Expected passing Jest cases");' "${{ steps.jest-report-setup.outputs.results-file }}"
+          node test/verify-example-results.js "${{ steps.jest-report-setup.outputs.results-file }}" jest
+
+  playwright-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: examples/playwright/package-lock.json
+      - name: Install Playwright example dependencies
+        working-directory: examples/playwright
+        run: npm ci
+      - name: Install Chromium
+        working-directory: examples/playwright
+        run: npx playwright install --with-deps chromium
+      - name: Set up Playwright example reporting
+        id: playwright-report-setup
+        uses: ./
+        with:
+          working-directory: examples/playwright
+      - name: Run Playwright example
+        working-directory: examples/playwright
+        run: npm test
+      - name: Verify Playwright reporter output
+        if: always()
+        run: node test/verify-example-results.js "${{ steps.playwright-report-setup.outputs.results-file }}" playwright
+
+  vitest-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: examples/vitest/package-lock.json
+      - name: Install Vitest example dependencies
+        working-directory: examples/vitest
+        run: npm ci
+      - name: Set up Vitest example reporting
+        id: vitest-report-setup
+        uses: ./
+        with:
+          working-directory: examples/vitest
+      - name: Run Vitest example
+        working-directory: examples/vitest
+        run: npm test
+      - name: Verify Vitest reporter output
+        if: always()
+        run: node test/verify-example-results.js "${{ steps.vitest-report-setup.outputs.results-file }}" vitest
+
+  pytest-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: examples/pytest/requirements.txt
+      - name: Install pytest example dependencies
+        run: python -m pip install -r examples/pytest/requirements.txt
+      - name: Set up pytest example reporting
+        id: pytest-report-setup
+        uses: ./
+        with:
+          working-directory: examples/pytest
+      - name: Run pytest example
+        working-directory: examples/pytest
+        run: python -m pytest
+      - name: Verify pytest reporter output
+        if: always()
+        run: node test/verify-example-results.js "${{ steps.pytest-report-setup.outputs.results-file }}" pytest
+
+  cypress-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: examples/cypress/package-lock.json
+      - name: Install Cypress example dependencies
+        working-directory: examples/cypress
+        run: npm ci
+      - name: Set up Cypress example reporting
+        id: cypress-report-setup
+        uses: ./
+        with:
+          working-directory: examples/cypress
+      - name: Run Cypress example
+        working-directory: examples/cypress
+        run: npm test
+      - name: Verify Cypress reporter output
+        if: always()
+        run: node test/verify-example-results.js "${{ steps.cypress-report-setup.outputs.results-file }}" cypress
+
+  junit5-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: examples/junit5/pom.xml
+      - name: Set up JUnit 5 example reporting
+        id: junit5-report-setup
+        uses: ./
+        with:
+          working-directory: examples/junit5
+      - name: Run JUnit 5 example
+        working-directory: examples/junit5
+        run: mvn --batch-mode test
+      - name: Verify JUnit 5 reporter output
+        if: always()
+        run: node test/verify-example-results.js "${{ steps.junit5-report-setup.outputs.results-file }}" junit
+
+  xunit-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Set up xUnit example reporting
+        uses: ./
+        with:
+          working-directory: examples/xunit
+          junit-xml: 'TestResults/**/*.xml'
+      - name: Run xUnit example
+        working-directory: examples/xunit
+        run: dotnet test --logger:junit --results-directory TestResults
+      - name: Finalize xUnit example report
+        id: xunit-report
+        if: always()
+        uses: ./
+        with:
+          mode: finalize
+          working-directory: examples/xunit
+          junit-xml: 'TestResults/**/*.xml'
+          max-annotations: 0
+      - name: Verify xUnit report outputs
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.xunit-report.outputs.conclusion }}" = "success"
+          test "${{ steps.xunit-report.outputs.passed }}" = "2"
+          test "${{ steps.xunit-report.outputs.failed }}" = "0"
+          test "${{ steps.xunit-report.outputs.total }}" = "2"

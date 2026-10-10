@@ -1,0 +1,20 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '8.0.x'
+      - name: Set up test automation reporting
+        uses: tesults/test-automation-reporting@v1
+        with:
+          junit-xml: 'TestResults/**/*.xml'
+      - name: Run tests
+        run: dotnet test --logger:junit --results-directory TestResults

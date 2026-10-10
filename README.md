@@ -783,8 +783,8 @@ input does not alter existing reporter behavior.
 ## Working examples
 
 The [`examples`](examples) directory contains complete, runnable projects with
-copyable GitHub Actions workflows. Start with the [Jest example](examples/jest)
-for the standard reporter setup.
+copyable GitHub Actions workflows for Playwright, Jest, Vitest, pytest,
+Cypress, JUnit 5, and xUnit, plus a framework-neutral cross-job workflow.
 
 ## Configuration
 
