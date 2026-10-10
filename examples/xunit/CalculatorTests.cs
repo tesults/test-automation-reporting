@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace Tesults.Action.Examples;
 
 public class CalculatorTests
