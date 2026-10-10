@@ -4,6 +4,8 @@ Get clear test results directly in your GitHub Actions job summary.
 
 See what passed, what failed, what was flaky, and why, without digging through raw CI logs. The action is free to use and does not require a Tesults account.
 
+The action is tested on GitHub-hosted Ubuntu, Windows, and macOS runners.
+
 ## What you get
 
 - Pass, fail, and flaky test counts
@@ -777,6 +779,12 @@ with:
 
 Reporter-generated Tesults JSON always takes priority over `junit-xml`, so this
 input does not alter existing reporter behavior.
+
+## Working examples
+
+The [`examples`](examples) directory contains complete, runnable projects with
+copyable GitHub Actions workflows. Start with the [Jest example](examples/jest)
+for the standard reporter setup.
 
 ## Configuration
 
