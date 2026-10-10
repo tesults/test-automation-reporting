@@ -1,8 +1,8 @@
 # Vitest example
 
-This example runs current Vitest with its built-in JUnit reporter. The action
-reads that XML and publishes the results in the GitHub Actions job summary. It
-requires no additional reporter package, Tesults account, or target token.
+This example runs current Vitest with `vitest-tesults-reporter@^1.2.0`. The
+action supplies the reporter's local output path and publishes the results in
+the GitHub Actions job summary. No Tesults account or target token is required.
 
 ## Run locally
 
@@ -14,10 +14,6 @@ npm test
 ## Use it in GitHub Actions
 
 Copy [`.github/workflows/test.yml`](.github/workflows/test.yml) into the same
-path in your project. The action's `junit-xml` input matches the output path in
-`vitest.config.js`, while the `default` reporter retains console output.
-
-Existing Vitest 3 projects can continue using
-`vitest-tesults-reporter@^1.1.0`. Vitest removed that reporter's legacy
-lifecycle hook in Vitest 4, so newer projects should use the built-in JUnit
-path shown here until the dedicated reporter is updated.
+path in your project. Keep the action before the test step and keep
+`vitest-tesults-reporter` in `vitest.config.js`; the `default` reporter retains
+console output. Reporter version 1.2.0 supports Vitest 0.34 through 5.

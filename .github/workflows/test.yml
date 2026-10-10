@@ -157,7 +157,6 @@ jobs:
         uses: ./
         with:
           working-directory: examples/vitest
-          junit-xml: 'test-results/**/*.xml'
       - name: Run Vitest example
         working-directory: examples/vitest
         run: npm test
@@ -168,7 +167,6 @@ jobs:
         with:
           mode: finalize
           working-directory: examples/vitest
-          junit-xml: 'test-results/**/*.xml'
           max-annotations: 0
       - name: Verify Vitest report outputs
         if: always()
