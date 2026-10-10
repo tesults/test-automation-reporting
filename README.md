@@ -40,9 +40,11 @@ same way as frameworks with a dedicated reporter.
 | JUnit 5 | `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#junit-5) |
 | Mocha | `mocha-tesults-reporter@^1.5.0` | [Instructions](#mocha) |
 | Nightwatch | `nightwatch-tesults@^1.3.0` | [Instructions](#nightwatch) |
+| NUnit 3 (.NET and .NET Framework) | **Coming soon** — `Tesults.NUnit` update pending NuGet publishing access | [Tesults NUnit 3 documentation](https://www.tesults.com/docs/nunit3) |
 | Playwright (Node.js) | `playwright-tesults-reporter@^1.6.1` | [Instructions](#playwright) |
 | Playwright (Python) | `pytest-playwright` with `pytest-tesults>=1.9.0` | [Instructions](#playwright-for-python) |
 | Playwright (Java) | JUnit 5 with `com.tesults.junit5:tesults-junit5:1.3.0` or later | [Instructions](#playwright-for-java) |
+| Playwright (.NET) | **Coming soon** through the NUnit 3 integration | [Tesults Playwright documentation](https://www.tesults.com/docs/playwright) |
 | Postman/Newman | `newman-reporter-tesults@^1.2.1` | [Instructions](#postmannewman) |
 | Protractor | `mocha-tesults-reporter@^1.5.0` or `jasmine-tesults-reporter@^1.2.0` | [Instructions](#protractor) |
 | pytest | `pytest-tesults>=1.9.0` | [Instructions](#pytest) |
@@ -61,6 +63,10 @@ same way as frameworks with a dedicated reporter.
 | WebdriverIO | `wdio-tesults-service@^1.5.0` | [Instructions](#webdriverio) |
 | XCTest / XCUITest | `tesults-xctest-observer` 1.0.7 or later | [Instructions](#xctest-and-xcuitest) |
 | xUnit | `JunitXml.TestLogger` with JUnit XML output | [Instructions](#xunit) |
+
+“Coming soon” rows describe planned action support and are not yet ready for
+use. xUnit is already supported through its JUnit XML logger. MSTest remains
+outside the current no-code action scope.
 
 ## Quick start
 
