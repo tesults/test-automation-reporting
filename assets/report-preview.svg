@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Example test report in a GitHub Actions job summary</title>
+  <desc id="desc">A GitHub-style test report showing 21 passed tests, one failed test, two flaky tests, and failure details with a source link.</desc>
+  <rect width="1280" height="720" rx="18" fill="#f6f8fa"/>
+  <rect x="70" y="48" width="1140" height="624" rx="12" fill="#ffffff" stroke="#d0d7de" stroke-width="2"/>
+
+  <circle cx="104" cy="83" r="7" fill="#ff5f57"/>
+  <circle cx="128" cy="83" r="7" fill="#febc2e"/>
+  <circle cx="152" cy="83" r="7" fill="#28c840"/>
+  <text x="640" y="89" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="17" font-weight="600" fill="#57606a">GitHub Actions · Test summary</text>
+  <line x1="70" y1="112" x2="1210" y2="112" stroke="#d8dee4" stroke-width="2"/>
+
+  <text x="116" y="164" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="27" font-weight="600" fill="#1f2328">Test results · 24 tests · 18.4 s</text>
+
+  <rect x="116" y="194" width="316" height="118" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+  <circle cx="166" cy="253" r="17" fill="#1a7f37"/>
+  <path d="M158 253l6 6 11-13" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="202" y="239" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="17" fill="#57606a">Passed</text>
+  <text x="202" y="276" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="600" fill="#1f2328">21</text>
+
+  <rect x="482" y="194" width="316" height="118" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+  <circle cx="532" cy="253" r="17" fill="#cf222e"/>
+  <path d="M525 246l14 14m0-14l-14 14" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <text x="568" y="239" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="17" fill="#57606a">Failed</text>
+  <text x="568" y="276" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="600" fill="#1f2328">1</text>
+
+  <rect x="848" y="194" width="316" height="118" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+  <path d="M998 236l19 34h-38z" fill="#bf8700"/>
+  <line x1="998" y1="247" x2="998" y2="258" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="998" cy="264" r="2.5" fill="#ffffff"/>
+  <text x="1034" y="239" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="17" fill="#57606a">Flaky</text>
+  <text x="1034" y="276" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="30" font-weight="600" fill="#1f2328">2</text>
+
+  <text x="116" y="370" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="600" fill="#1f2328">Failures</text>
+  <line x1="116" y1="389" x2="1164" y2="389" stroke="#d8dee4"/>
+
+  <circle cx="134" cy="428" r="12" fill="#cf222e"/>
+  <path d="M129 423l10 10m0-10l-10 10" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+  <text x="158" y="435" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="18" font-weight="600" fill="#1f2328">checkout › rejects an expired card</text>
+  <text x="158" y="466" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" fill="#0969da">tests/checkout.spec.ts:42</text>
+
+  <rect x="158" y="491" width="958" height="104" rx="7" fill="#f6f8fa" stroke="#d8dee4"/>
+  <text x="182" y="523" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" fill="#57606a">Expected status:</text>
+  <text x="330" y="523" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="600" fill="#1a7f37">200</text>
+  <text x="182" y="551" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" fill="#57606a">Received status:</text>
+  <text x="330" y="551" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="600" fill="#cf222e">402</text>
+  <text x="182" y="579" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" fill="#57606a">at checkout.spec.ts:42:18</text>
+
+  <rect x="158" y="615" width="220" height="34" rx="6" fill="#f6f8fa" stroke="#d0d7de"/>
+  <path d="M175 628l6 6 6-6" fill="none" stroke="#57606a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="197" y="638" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="600" fill="#1f2328">Captured files (2)</text>
+</svg>

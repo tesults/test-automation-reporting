@@ -1,5 +1,5 @@
 name: Test Automation Reporting for GitHub Actions
-description: GitHub-native test reports with failures, logs, retries, steps, screenshots, and attachments.
+description: Test reports for Playwright, Jest, Vitest, pytest, Cypress, JUnit, and more, with failures, logs, and screenshots.
 author: Tesults
 
 inputs:

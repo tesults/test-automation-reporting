@@ -6,6 +6,8 @@ See what passed, what failed, what was flaky, and why, without digging through r
 
 The action is tested on GitHub-hosted Ubuntu, Windows, and macOS runners.
 
+![Example GitHub Actions job summary showing passed, failed, and flaky tests with failure details](assets/report-preview.svg)
+
 ## What you get
 
 - Pass, fail, and flaky test counts
