@@ -60,7 +60,7 @@ same way as frameworks with a dedicated reporter.
 | Selenium | The supported test runner or framework used by the project | [Instructions](#selenium) |
 | TestCafe | `testcafe-reporter-tesults@^1.3.0` | [Instructions](#testcafe) |
 | TestNG | `com.tesults.testng:tesults-testng:1.3.0` or later | [Instructions](#testng) |
-| Vitest | `vitest-tesults-reporter@^1.1.0` | [Instructions](#vitest) |
+| Vitest | Built-in JUnit XML (Vitest 4 or later) or `vitest-tesults-reporter@^1.1.0` (Vitest 3) | [Instructions](#vitest) |
 | Waffle | `mocha-tesults-reporter@^1.5.0` | [Instructions](#waffle) |
 | WebdriverIO | `wdio-tesults-service@^1.5.0` | [Instructions](#webdriverio) |
 | XCTest / XCUITest | `tesults-xctest-observer` 1.0.7 or later | [Instructions](#xctest-and-xcuitest) |
@@ -86,7 +86,7 @@ npm install --save-dev playwright-tesults-reporter@^1.6.1
 # Jest
 npm install --save-dev jest-tesults-reporter@^1.3.0
 
-# Vitest
+# Vitest 3 (Vitest 4 or later uses its built-in JUnit reporter)
 npm install --save-dev vitest-tesults-reporter@^1.1.0
 
 # Mocha
@@ -243,18 +243,37 @@ module.exports = {
 
 #### Vitest
 
+Vitest 4 or later can use its built-in JUnit reporter without an additional
+reporter package:
+
 ```js
 // vitest.config.js
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    reporters: [
+      'default',
+      ['junit', {
+        outputFile: './test-results/vitest.xml',
+        addFileAttribute: true
+      }]
+    ]
+  }
+});
+```
+
+Set `junit-xml: "test-results/**/*.xml"` on the action step. Existing Vitest 3
+projects can continue using `vitest-tesults-reporter@^1.1.0`:
+
+```js
 import { defineConfig } from 'vitest/config';
 import TesultsReporter from 'vitest-tesults-reporter';
 
 export default defineConfig({
   test: {
     includeTaskLocation: true,
-    reporters: [
-      'default',
-      new TesultsReporter()
-    ]
+    reporters: ['default', new TesultsReporter()]
   }
 });
 ```

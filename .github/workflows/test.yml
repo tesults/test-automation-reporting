@@ -154,16 +154,30 @@ jobs:
         working-directory: examples/vitest
         run: npm ci
       - name: Set up Vitest example reporting
-        id: vitest-report-setup
         uses: ./
         with:
           working-directory: examples/vitest
+          junit-xml: 'test-results/**/*.xml'
       - name: Run Vitest example
         working-directory: examples/vitest
         run: npm test
-      - name: Verify Vitest reporter output
+      - name: Finalize Vitest example report
+        id: vitest-report
         if: always()
-        run: node test/verify-example-results.js "${{ steps.vitest-report-setup.outputs.results-file }}" vitest
+        uses: ./
+        with:
+          mode: finalize
+          working-directory: examples/vitest
+          junit-xml: 'test-results/**/*.xml'
+          max-annotations: 0
+      - name: Verify Vitest report outputs
+        if: always()
+        shell: bash
+        run: |
+          test "${{ steps.vitest-report.outputs.conclusion }}" = "success"
+          test "${{ steps.vitest-report.outputs.passed }}" = "2"
+          test "${{ steps.vitest-report.outputs.failed }}" = "0"
+          test "${{ steps.vitest-report.outputs.total }}" = "2"
 
   pytest-example:
     runs-on: ubuntu-latest

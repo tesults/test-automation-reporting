@@ -16,5 +16,7 @@ jobs:
       - run: npm ci
       - name: Set up test automation reporting
         uses: tesults/test-automation-reporting@v1
+        with:
+          junit-xml: 'test-results/**/*.xml'
       - name: Run tests
         run: npm test
