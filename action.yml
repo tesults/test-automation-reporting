@@ -1,5 +1,5 @@
 name: Test Automation Reporting for GitHub Actions
-description: Test reports for Playwright, Jest, Vitest, pytest, Cypress, JUnit, and more, with failures, logs, and screenshots.
+description: Free GitHub Actions test reports for Playwright, Jest, Vitest, pytest, Cypress, and JUnit. Failures and screenshots; no account needed.
 author: Tesults
 
 inputs:
