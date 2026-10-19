@@ -1,8 +1,10 @@
 # Test Automation Reporting for GitHub Actions
 
-Get clear test results directly in your GitHub Actions job summary.
+**Free test reporting for GitHub Actions — no Tesults account or API token required.**
 
-See what passed, what failed, what was flaky, and why, without digging through raw CI logs. The action is free to use and does not require a Tesults account.
+Get readable test results in your GitHub Actions job summary, with passed, failed, and flaky counts, failure messages, source locations, and captured screenshots. Use it with Playwright, Jest, Vitest, pytest, Cypress, JUnit, and many other test frameworks.
+
+Keep your existing test commands. The action generates a report for the current workflow run directly in GitHub. If you later need test history across runs and CI systems, [Tesults](https://www.tesults.com/?i=ga) adds that separately.
 
 The action is tested on GitHub-hosted Ubuntu, Windows, and macOS runners.
 
